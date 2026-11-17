@@ -1,0 +1,15 @@
+---
+description: Engineering standards enforced in this repository
+alwaysApply: true
+---
+
+# Standards
+
+- TypeScript `strict` is on. Do not weaken it to make a change compile.
+- ESLint and Prettier must pass with zero warnings. Do not disable a rule for new code unless the construct cannot be typed (generated Prisma client is already ignored).
+- No `console` in application code. Use the Pino logger.
+- No secrets in git. `.env.example` holds placeholders. The seed refuses a weak `ADMIN_PASSWORD`.
+- Parameterized queries only. Prisma tagged `$queryRaw` is allowed. Do not build SQL by string concatenation.
+- Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.
+- New behavior needs a test that maps to an acceptance criterion in `docs/design.md`.
+- Keep line coverage at or above 80%.

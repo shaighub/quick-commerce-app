@@ -1,0 +1,7 @@
+npx lint-staged
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --no-banner
+else
+  echo "gitleaks is not installed. Install it before committing. See CONTRIBUTING.md."
+  exit 1
+fi

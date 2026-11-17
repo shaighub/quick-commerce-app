@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+package-lock.json
+apps/api/prisma/migrations
+apps/api/src/generated
+apps/api/openapi/openapi.yaml
+playwright-report
+test-results

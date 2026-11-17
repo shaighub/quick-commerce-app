@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: qc
+      POSTGRES_PASSWORD: qc
+      POSTGRES_DB: quick_commerce
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U qc -d quick_commerce']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - qc_pg:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      LOG_LEVEL: info
+      APP_VERSION: 0.1.0
+      DATABASE_URL: postgresql://qc:qc@postgres:5432/quick_commerce?schema=public&connection_limit=5&pool_timeout=10
+      JWT_SECRET: local-dev-only-jwt-secret-32chars-min
+      JOBS_TOKEN: local-dev-only-jobs-token
+      DELIVERY_FEE_PAISE: 2500
+      SERVICEABLE_PINCODES: 560001,560002
+      IMAGE_HOSTS: images.example.com
+      DOCS_ENABLED: 'true'
+    ports:
+      - '4000:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ['sh', '-c', 'npx prisma migrate deploy && node dist/server.js']
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:4000/v1/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    image: node:20-bookworm-slim
+    working_dir: /app
+    environment:
+      HUSKY: '0'
+      VITE_API_BASE_URL: /v1
+      VITE_API_PROXY_TARGET: http://api:4000
+    volumes:
+      - ./:/app
+      - web_node_modules:/app/node_modules
+    command: ['sh', '-c', 'npm ci && npm run dev -w @qc/web -- --host 0.0.0.0 --port 5173']
+    ports:
+      - '5173:5173'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  qc_pg:
+  web_node_modules:

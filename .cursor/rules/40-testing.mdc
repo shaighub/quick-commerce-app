@@ -1,0 +1,13 @@
+---
+description: How to test API and UI changes
+alwaysApply: true
+---
+
+# Testing
+
+- Unit tests for pure rules (Zod, transitions, money, order numbers).
+- API integration tests use Vitest, Supertest, and the `quick_commerce_test` Postgres database. `tests/global-setup.ts` applies migrations.
+- Component tests use Testing Library and a memory router.
+- Playwright is scaffolded in `apps/web` and is not part of milestone 1 CI. Add a spec when the user flow exists.
+- A bug fix adds a regression test.
+- Do not mock PostgreSQL for a test whose acceptance criterion is about persistence, constraints, or transactions.
