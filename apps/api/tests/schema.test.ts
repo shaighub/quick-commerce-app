@@ -161,7 +161,7 @@ describe('database foundation', () => {
   });
 
   it('issues consecutive order numbers for the IST day', async () => {
-    const next = async () =>
+    const next = () =>
       prisma.$queryRaw<{ day_text: string; last_value: number }[]>`
         WITH upserted AS (
           INSERT INTO order_number_counters (day, last_value)
