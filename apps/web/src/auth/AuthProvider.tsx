@@ -22,6 +22,7 @@ export type InitialAuth =
 interface AuthContextValue {
   status: 'loading' | 'guest' | 'authenticated';
   user: PublicUser | null;
+  api: ApiClient;
   login: (input: LoginInput) => ReturnType<ApiClient['login']>;
   signup: (input: SignupInput) => ReturnType<ApiClient['signup']>;
   logout: () => Promise<void>;
@@ -176,8 +177,8 @@ export function AuthProvider({
   }, [clearSession, client]);
 
   const value = useMemo(
-    () => ({ status, user, login, signup, logout, logoutAll }),
-    [status, user, login, signup, logout, logoutAll],
+    () => ({ status, user, api: client, login, signup, logout, logoutAll }),
+    [status, user, client, login, signup, logout, logoutAll],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,6 +1,6 @@
 # Quick Commerce
 
-A single-store quick-commerce app: customers browse and order, an admin manages the catalog and order status, and guests can only browse. Milestone 1 is the foundation. Milestone 2 adds customer sign-up, login, refresh-token rotation, and route guards. Catalog, cart, and checkout behavior are later milestones. The approved design is [`docs/design.md`](docs/design.md).
+A single-store quick-commerce app: customers browse and order, an admin manages the catalog and order status, and guests can only browse. Milestone 1 is the foundation. Milestone 2 adds customer sign-up, login, refresh-token rotation, and route guards. Milestone 3 adds catalog browse, search, admin catalog management, and the pincode check. Cart and checkout are later milestones. The approved design is [`docs/design.md`](docs/design.md).
 
 ## Architecture
 
@@ -23,7 +23,7 @@ flowchart LR
 
 The browser never calls the API host directly. Locally, Vite proxies `/v1`. On Vercel, `apps/web/vercel.json` rewrites `/v1` to the Render service (ADR-004). CORS is deny-all.
 
-Money is stored and returned as integer paise. The UI will format rupees.
+Money is stored and returned as integer paise. The UI formats rupees with `Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' })`.
 
 ## Prerequisites
 
@@ -59,6 +59,16 @@ Passwords are hashed with bcrypt cost 12. Login returns a 15-minute JWT access t
 Five failed logins lock the account for 15 minutes (`423 ACCOUNT_LOCKED`). Unknown emails get the same responses from an in-memory counter, so a failure does not reveal whether the address exists. Auth routes allow 10 requests per minute per IP.
 
 The browser calls `/v1` on the web origin, including the silent refresh on load. Vite proxies that path locally. See ADR-003, ADR-004, and ADR-013.
+
+## Catalog
+
+Guests and customers can browse `GET /v1/categories` and `GET /v1/products`, open a product at `/p/:slug`, and search by name or description. Search uses PostgreSQL full-text ranking and falls back to `pg_trgm` when full-text finds nothing (ADR-007). Public catalog responses send `Cache-Control: public, max-age=60, stale-while-revalidate=300` and an ETag. An admin write clears the API's in-process cache.
+
+Admins manage categories, subcategories, and products under `/v1/admin`. Deletes set `deleted_at`. A category that still has a subcategory returns `409 CATEGORY_NOT_EMPTY`. A subcategory that still has a product returns `409 SUBCATEGORY_NOT_EMPTY`. Image URLs must be `https` on a host in `IMAGE_HOSTS`.
+
+`GET /v1/serviceability?pincode=` returns whether that pincode is in `SERVICEABLE_PINCODES`, plus `deliveryFeePaise`. An invalid pincode is `422`. Checkout's `422 NOT_SERVICEABLE` arrives with orders. The shared check is `refusalForUnserviceablePincode` in `@qc/shared`.
+
+Category and subcategory slugs are fixed at create (ADR-014). The storefront price filters `min` and `max` are rupees; the API query stays in paise. A guest's Add to cart link goes to `/login?next=`. The cart itself is the next milestone.
 
 ## Run
 
@@ -110,6 +120,7 @@ Copy `.env.example`. The API also reads `apps/api/.env`, which overrides the roo
 | `DELIVERY_FEE_PAISE`             | Flat delivery fee in paise.                                                                   |
 | `SERVICEABLE_PINCODES`           | Comma-separated 6-digit pincodes.                                                             |
 | `IMAGE_HOSTS`                    | Hostnames allowed in image URLs and in `img-src`.                                             |
+| `VITE_IMAGE_HOSTS`               | Optional. Same host list for the storefront image check. Defaults to `images.example.com`.    |
 | `DOCS_ENABLED`                   | `true` or `false`. Defaults on outside production.                                            |
 | `SENTRY_DSN`                     | Optional. Parsed now, wired to error tracking later.                                          |
 | `VITE_API_BASE_URL`              | Browser base path. Keep `/v1`.                                                                |

@@ -1,26 +1,11 @@
 import { useParams } from 'react-router-dom';
 import { Placeholder } from '../components/Placeholder.js';
 
-export function HomePage() {
-  return (
-    <Placeholder
-      id="S01"
-      title="Home and product list"
-      summary="Browse categories and search products. Catalog browsing arrives in a later milestone."
-    />
-  );
-}
-
-export function ProductDetailPage() {
-  const { slug } = useParams();
-  return (
-    <Placeholder
-      id="S02"
-      title="Product detail"
-      summary={`Product ${slug ?? ''} will show price, unit, and stock in a later milestone.`}
-    />
-  );
-}
+export { HomePage } from './HomePage.js';
+export { ProductDetailPage } from './ProductDetailPage.js';
+export { AdminCategoriesPage } from './admin/AdminCategoriesPage.js';
+export { AdminProductsPage } from './admin/AdminProductsPage.js';
+export { ProductFormPage } from './admin/ProductFormPage.js';
 
 export function CartPage() {
   return (
@@ -76,42 +61,6 @@ export function AdminDashboardPage() {
       id="A01"
       title="Admin dashboard"
       summary="Today's orders, revenue, and low stock arrive in a later milestone."
-    />
-  );
-}
-
-export function AdminCategoriesPage() {
-  return (
-    <Placeholder
-      id="A02"
-      title="Categories"
-      summary="Category and subcategory management arrives in a later milestone."
-    />
-  );
-}
-
-export function AdminProductsPage() {
-  return (
-    <Placeholder
-      id="A03"
-      title="Products"
-      summary="The admin product list arrives in a later milestone."
-    />
-  );
-}
-
-export function ProductFormPage() {
-  const { id } = useParams();
-  const creating = id === undefined;
-  return (
-    <Placeholder
-      id="A04"
-      title={creating ? 'New product' : 'Edit product'}
-      summary={
-        creating
-          ? 'Product creation arrives in a later milestone.'
-          : `Editing product ${id} arrives in a later milestone.`
-      }
     />
   );
 }

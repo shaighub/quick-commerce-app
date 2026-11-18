@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { createImageUrlSchema } from '@qc/shared';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { AppError } from '../src/lib/errors.js';
@@ -50,6 +51,20 @@ describe('error handler', () => {
         message: 'Request validation failed',
         requestId: 'req-unit',
       },
+    });
+  });
+
+  it('maps an unlisted image host to IMAGE_HOST_NOT_ALLOWED', () => {
+    const parsed = createImageUrlSchema(['images.example.com']).safeParse(
+      'https://evil.example/a.png',
+    );
+    if (parsed.success) {
+      throw new Error('expected the host to be rejected');
+    }
+    const result = invoke(parsed.error);
+    expect(result.status).toBe(422);
+    expect(result.body).toMatchObject({
+      error: { code: 'IMAGE_HOST_NOT_ALLOWED', message: 'Image host is not allowlisted' },
     });
   });
 

@@ -52,14 +52,20 @@ export function createErrorHandler(logger: AppLogger) {
     }
 
     if (error instanceof ZodError) {
+      const onlyImageHost =
+        error.issues.length > 0 &&
+        error.issues.every((issue) => issue.message === ErrorCodes.IMAGE_HOST_NOT_ALLOWED);
       res.status(422).json(
         errorBody(
-          ErrorCodes.VALIDATION,
-          'Request validation failed',
+          onlyImageHost ? ErrorCodes.IMAGE_HOST_NOT_ALLOWED : ErrorCodes.VALIDATION,
+          onlyImageHost ? 'Image host is not allowlisted' : 'Request validation failed',
           requestId,
           error.issues.map((issue) => ({
             path: issue.path.join('.'),
-            message: issue.message,
+            message:
+              issue.message === ErrorCodes.IMAGE_HOST_NOT_ALLOWED
+                ? 'Image host is not allowlisted'
+                : issue.message,
           })),
         ),
       );

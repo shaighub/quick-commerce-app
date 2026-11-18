@@ -1,13 +1,30 @@
 import {
   accessTokenResponseSchema,
+  adminCategoryListSchema,
+  adminProductListResponseSchema,
+  adminProductResponseSchema,
   authSessionSchema,
+  categoryResponseSchema,
   errorResponseSchema,
   healthResponseSchema,
   meResponseSchema,
+  productDetailResponseSchema,
+  productListResponseSchema,
+  publicCategoryListSchema,
+  serviceabilityResponseSchema,
+  subcategoryResponseSchema,
+  type AdminCategory,
+  type AdminProduct,
+  type AdminProductListResponse,
+  type AdminSubcategory,
   type AuthSession,
   type HealthResponse,
   type LoginInput,
   type MeResponse,
+  type ProductDetail,
+  type ProductListResponse,
+  type PublicCategory,
+  type ServiceabilityResponse,
   type SignupInput,
 } from '@qc/shared';
 
@@ -52,6 +69,21 @@ interface RequestOptions {
 
 export function apiBaseUrl(): string {
   return import.meta.env.VITE_API_BASE_URL ?? '/v1';
+}
+
+function withQuery(
+  path: string,
+  params: Record<string, string | number | boolean | undefined>,
+): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === '') {
+      continue;
+    }
+    search.set(key, String(value));
+  }
+  const text = search.toString();
+  return text === '' ? path : `${path}?${text}`;
 }
 
 export function createApiClient(options: ApiClientOptions = {}) {
@@ -163,6 +195,112 @@ export function createApiClient(options: ApiClientOptions = {}) {
     },
     me(): Promise<MeResponse> {
       return request('/auth/me', { authenticate: true }, (value) => meResponseSchema.parse(value));
+    },
+    listCategories(): Promise<PublicCategory[]> {
+      return request('/categories', {}, (value) => publicCategoryListSchema.parse(value));
+    },
+    listProducts(
+      query: Record<string, string | number | boolean | undefined>,
+    ): Promise<ProductListResponse> {
+      return request(withQuery('/products', query), {}, (value) =>
+        productListResponseSchema.parse(value),
+      );
+    },
+    getProduct(slug: string): Promise<ProductDetail> {
+      return request(
+        `/products/${encodeURIComponent(slug)}`,
+        {},
+        (value) => productDetailResponseSchema.parse(value).product,
+      );
+    },
+    checkServiceability(pincode: string): Promise<ServiceabilityResponse> {
+      return request(withQuery('/serviceability', { pincode }), {}, (value) =>
+        serviceabilityResponseSchema.parse(value),
+      );
+    },
+    listAdminCategories(includeInactive: boolean): Promise<AdminCategory[]> {
+      return request(
+        withQuery('/admin/categories', { includeInactive: includeInactive ? 'true' : 'false' }),
+        { authenticate: true },
+        (value) => adminCategoryListSchema.parse(value),
+      );
+    },
+    createCategory(body: unknown): Promise<AdminCategory> {
+      return request(
+        '/admin/categories',
+        { method: 'POST', body, authenticate: true },
+        (value) => categoryResponseSchema.parse(value).category,
+      );
+    },
+    updateCategory(id: string, body: unknown): Promise<AdminCategory> {
+      return request(
+        `/admin/categories/${id}`,
+        { method: 'PATCH', body, authenticate: true },
+        (value) => categoryResponseSchema.parse(value).category,
+      );
+    },
+    deleteCategory(id: string): Promise<void> {
+      return request(
+        `/admin/categories/${id}`,
+        { method: 'DELETE', authenticate: true },
+        () => undefined,
+      );
+    },
+    createSubcategory(categoryId: string, body: unknown): Promise<AdminSubcategory> {
+      return request(
+        `/admin/categories/${categoryId}/subcategories`,
+        { method: 'POST', body, authenticate: true },
+        (value) => subcategoryResponseSchema.parse(value).subcategory,
+      );
+    },
+    updateSubcategory(id: string, body: unknown): Promise<AdminSubcategory> {
+      return request(
+        `/admin/subcategories/${id}`,
+        { method: 'PATCH', body, authenticate: true },
+        (value) => subcategoryResponseSchema.parse(value).subcategory,
+      );
+    },
+    deleteSubcategory(id: string): Promise<void> {
+      return request(
+        `/admin/subcategories/${id}`,
+        { method: 'DELETE', authenticate: true },
+        () => undefined,
+      );
+    },
+    listAdminProducts(
+      query: Record<string, string | number | boolean | undefined>,
+    ): Promise<AdminProductListResponse> {
+      return request(withQuery('/admin/products', query), { authenticate: true }, (value) =>
+        adminProductListResponseSchema.parse(value),
+      );
+    },
+    getAdminProduct(id: string): Promise<AdminProduct> {
+      return request(
+        `/admin/products/${id}`,
+        { authenticate: true },
+        (value) => adminProductResponseSchema.parse(value).product,
+      );
+    },
+    createProduct(body: unknown): Promise<AdminProduct> {
+      return request(
+        '/admin/products',
+        { method: 'POST', body, authenticate: true },
+        (value) => adminProductResponseSchema.parse(value).product,
+      );
+    },
+    updateProduct(id: string, body: unknown): Promise<AdminProduct> {
+      return request(
+        `/admin/products/${id}`,
+        { method: 'PATCH', body, authenticate: true },
+        (value) => adminProductResponseSchema.parse(value).product,
+      );
+    },
+    deleteProduct(id: string): Promise<void> {
+      return request(
+        `/admin/products/${id}`,
+        { method: 'DELETE', authenticate: true },
+        () => undefined,
+      );
     },
   };
 }

@@ -39,15 +39,13 @@ describe('storefront shell', () => {
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main');
     expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main');
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Home and product list' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Shop' })).toBeInTheDocument();
   });
 
   it('renders every designed screen for a role that may open it', () => {
     const guestScreens: Array<[string, string]> = [
-      ['/search', 'Home and product list'],
-      ['/p/amul-butter', 'Product detail'],
+      ['/search', 'Shop'],
+      ['/p/amul-butter', 'Product'],
       ['/signup', 'Sign up'],
       ['/login', 'Log in'],
       ['/missing', 'Page not found'],

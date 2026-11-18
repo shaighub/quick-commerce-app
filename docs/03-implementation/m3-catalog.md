@@ -1,24 +1,50 @@
 # Milestone 3: Catalog
 
-**Status:** Not started.
+**Status:** Done pending review.
 
-No branch, pull request, or verification result is recorded.
+|              |                                                                 |
+| ------------ | --------------------------------------------------------------- |
+| Branch       | `feature/m3-catalog`                                            |
+| Pull request | Open against `main`. The URL is recorded when the PR is opened. |
 
-## Planned scope
+## What was built
 
-From the approved design. The IDs are the CAT and PROD modules, plus the non-functional requirements the matrix traces to catalog reads and admin image URLs.
+- Public reads: `GET /v1/categories`, `GET /v1/products` (pagination, category and subcategory filters, price range, in-stock, sort), and `GET /v1/products/:slug`. Only active, non-deleted rows are returned, and a product whose category or subcategory is inactive or deleted is hidden.
+- Admin CRUD under `requireRole('ADMIN')` for categories, subcategories, and products. Deletes set `deleted_at` (ADR-009). A category with a live subcategory returns `409 CATEGORY_NOT_EMPTY`. A subcategory with a live product returns `409 SUBCATEGORY_NOT_EMPTY`.
+- Slugs are generated from the name. Category and subcategory slugs stay fixed after create ([ADR-014](../adr/014-catalog-slugs-and-rupee-filters.md)). Product slug and SKU conflicts return `409 SLUG_TAKEN` or `409 SKU_TAKEN`. Prices and stock are integers. `pricePaise` must be greater than zero.
+- Image URLs must be `https` on a host in `IMAGE_HOSTS`. Anything else is `422`, and an unlisted host uses the code `IMAGE_HOST_NOT_ALLOWED`.
+- Search runs `websearch_to_tsquery('simple', …)` first and uses `pg_trgm` (`%` after `set_config('pg_trgm.similarity_threshold', '0.3', true)`) only when full-text finds nothing (ADR-007). Name weight A ranks above description weight B. Without `q`, relevance sorts by newest.
+- Public catalog responses send `Cache-Control: public, max-age=60, stale-while-revalidate=300` and a strong ETag. `If-None-Match` returns `304`. Admin writes clear the in-process cache.
+- `GET /v1/serviceability?pincode=` returns `{ pincode, serviceable, deliveryFeePaise }`. A malformed pincode is `422 VALIDATION`. `refusalForUnserviceablePincode` is the shared check checkout will use for `422 NOT_SERVICEABLE`.
+- OpenAPI at `/v1/docs` includes the new paths. Schemas come from `packages/shared`.
+- Storefront: home and `/search` with category rail, filters, pagination, empty search, and pincode check; product detail with breadcrumb, rupee price, stock badge, and image alt text. Guests who choose Add to cart go to `/login?next=`. Signed-in shoppers go to the cart route, which is still the Milestone 4 placeholder.
+- Admin screens for category, subcategory, and product list, create, edit, and delete, with confirmation dialogs and the shared Zod forms.
+- TanStack Query `staleTime` for catalog reads is 60 seconds.
 
-- Public catalog: `GET /v1/categories`, `GET /v1/products`, and `GET /v1/products/:slug` in [section 2](../design.md#2-api-endpoints-v1).
-- Admin category, subcategory, and product routes in the same table.
-- [Product search indexing](../design.md#product-search-indexing) (full-text plus `pg_trgm`).
-- Screens [S01](../design.md#3-screens), [S02](../design.md#3-screens), [A02](../design.md#3-screens), [A03](../design.md#3-screens), and [A04](../design.md#3-screens).
-- [ADR-007](../adr/007-postgres-search.md), PostgreSQL full-text search and `pg_trgm`.
-- [ADR-009](../adr/009-soft-delete.md), soft delete with RESTRICT foreign keys.
-- [ADR-005](../adr/005-money-as-paise.md), because product prices are integer paise.
+## Verification
 
-The schema, seed products, and generated `search_vector` column were created in [Milestone 1](m1-foundation.md). The catalog and search endpoints were left for a later milestone.
+Local, PostgreSQL 16.15, on 2026-11-18. GitHub Actions on the pull request is recorded after it finishes.
 
-The exit criterion is the acceptance criterion in the [traceability matrix](../design.md#4-requirement-traceability-matrix). No Checkpoint 4 result is recorded. [NFR-SEC-03](m5-hardening.md) (server-side validation and parameterized queries) also applies to the endpoints in this milestone. Its exit criterion is tracked once, on Milestone 5.
+| Check                         | Result                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lint                          | Pass, zero warnings                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Format check                  | Pass                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Type-check                    | Pass                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Migrate                       | `20261117180000_init` applied on a fresh `quick_commerce` database. No new migration.                                                                                                                                                                                                                                                                                                                                                              |
+| Drift                         | `prisma migrate diff` reported no difference                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Tests                         | `@qc/shared` 18 passed. `@qc/api` 85 passed. `@qc/web` passed in the coverage run.                                                                                                                                                                                                                                                                                                                                                                 |
+| Coverage                      | Shared lines 98.14%, statements 98.16%, branches 96.55%, functions 100%. API lines 93.58%, statements 93.53%, branches 84.18%, functions 97.77%. Web lines 89.18%, statements 89.26%, branches 79.56% (gate 70%), functions 90.24%.                                                                                                                                                                                                                |
+| Build                         | Pass                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `node scripts/audit-deps.mjs` | Production dependencies clean. The only remaining high advisory is the allowed dev-only picomatch ReDoS.                                                                                                                                                                                                                                                                                                                                           |
+| OpenAPI check                 | Pass                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Browser                       | Pass. Shop showed seeded categories and Amul Butter at ₹56.00. Search for `buter` returned Amul Butter. Pincode 560001 was serviceable and 110001 was not. Product detail showed the breadcrumb, 500 g, and In stock. Add to cart opened Log in. Admin delete of Dairy & Bread returned "Remove the subcategories in this category first". A new category Browser Test appeared in the admin list. The product list and new-product form rendered. |
+
+## Deviations
+
+- Cart availability after a soft delete, and adding the item after the guest logs in, stay in Milestone 4. This milestone hides the product from public reads, keeps the `cart_items` row (the foreign key is `RESTRICT`), and leaves `order_items.unit_price_paise` unchanged when the product price changes. The integration test checks those rows directly.
+- There is no Prisma client extension that hides soft-deleted rows. Admin lists must still return inactive and deleted products. Each repository applies `deleted_at` itself. ADR-009 already described the extension as later work.
+- Playwright specs named in the traceability matrix (`admin-catalog`, `search`) are not added. `apps/web/e2e/README.md` still keeps Playwright out of CI. The storefront and admin screens are covered by Testing Library tests, and a browser pass covers the same flows.
+- `GET /v1/products/:slug` also returns `sku`, `description`, and `stock` with `stockStatus`. The extra fields let the page render the design without a second request.
 
 ## Exit criteria
 
