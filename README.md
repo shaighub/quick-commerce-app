@@ -123,6 +123,10 @@ Not part of this milestone. The intended path, after a deployment checkpoint:
 - **Pre-commit fails on gitleaks.** Install the gitleaks binary and retry. The hook does not skip the scan.
 - **Port 5432 is taken.** Stop the other Postgres or change the Compose port and `DATABASE_URL` together.
 
+## Documentation
+
+Phase and milestone documents, standards, and the approval log are indexed in [docs/README.md](docs/README.md).
+
 ## Further reading
 
 - [Design](docs/design.md)
