@@ -2,6 +2,7 @@ import express, { type Express } from 'express';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { createSecurity, type Security } from './auth/create-security.js';
+import { createCatalogModule, type CatalogModule } from './catalog/create-catalog.js';
 import type { AppConfig } from './config/env.js';
 import type { PrismaClient } from './generated/prisma/client.js';
 import type { AppLogger } from './lib/logger.js';
@@ -17,6 +18,7 @@ export interface AppDeps {
   prisma: PrismaClient;
   now?: () => Date;
   security?: Security;
+  catalog?: CatalogModule;
 }
 
 export function createApp(deps: AppDeps): Express {
@@ -62,7 +64,15 @@ export function createApp(deps: AppDeps): Express {
       logger: deps.logger,
       ...(deps.now ? { now: deps.now } : {}),
     });
-  app.use('/v1', createV1Router({ config: deps.config, checkDb: deps.checkDb, security }));
+  const catalog =
+    deps.catalog ??
+    createCatalogModule({
+      prisma: deps.prisma,
+      imageHosts: deps.config.imageHosts,
+      serviceablePincodes: deps.config.serviceablePincodes,
+      deliveryFeePaise: deps.config.deliveryFeePaise,
+    });
+  app.use('/v1', createV1Router({ config: deps.config, checkDb: deps.checkDb, security, catalog }));
   app.use(notFoundHandler);
   app.use(createErrorHandler(deps.logger));
 

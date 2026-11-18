@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 - 2026-11-18
+
+### Added
+
+- Public catalog reads: categories, paginated product search and filters, and product detail, with a 60-second cache and ETag.
+- Admin category, subcategory, and product create, update, and soft delete, including image-host checks.
+- `GET /v1/serviceability` and the shared pincode check used later at checkout.
+- Storefront browse, search, and product pages, plus admin catalog screens.
+
 ## 0.2.0 - 2026-11-18
 
 ### Added

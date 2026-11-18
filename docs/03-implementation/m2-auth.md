@@ -1,15 +1,18 @@
 # Milestone 2: Auth
 
-**Status:** In progress.
+**Status:** Done.
+
+Approved at Checkpoint 3 and merged on 2026-11-18.
 
 |              |                                                                                                       |
 | ------------ | ----------------------------------------------------------------------------------------------------- |
 | Branch       | `feature/m2-auth`                                                                                     |
 | Started      | 2026-11-18, 08:19 IST. The activity log says the Milestone 2 cloud agent was launched on this branch. |
 | Agent        | https://cursor.com/agents/bc-67deb92f-d338-540b-93d5-52fde5cbdae5                                     |
-| Pull request | None recorded in the activity log                                                                     |
+| Pull request | https://github.com/shaighub/quick-commerce-app/pull/3                                                 |
+| Merge        | Squash-merged into `main` on 2026-11-18, merge commit `ceccc31`                                       |
 
-No verification results are recorded for this milestone.
+The exit criteria below were accepted when [PR #3](https://github.com/shaighub/quick-commerce-app/pull/3) merged. This page does not re-measure that pull request.
 
 ## Planned scope
 

@@ -17,8 +17,74 @@ export type {
   PublicUser,
   SignupInput,
 } from './auth.js';
+export {
+  adminCategoryListQuerySchema,
+  adminCategoryListSchema,
+  adminCategorySchema,
+  adminProductListQuerySchema,
+  adminProductListResponseSchema,
+  adminProductResponseSchema,
+  adminProductSchema,
+  adminProductStatusSchema,
+  adminSubcategorySchema,
+  capPublicTotal,
+  catalogRefSchema,
+  categoryNameSchema,
+  categoryResponseSchema,
+  createCategoryBodySchema,
+  createProductBodySchema,
+  createSubcategoryBodySchema,
+  idParamSchema,
+  productCardSchema,
+  productDescriptionSchema,
+  productDetailResponseSchema,
+  productDetailSchema,
+  productListQuerySchema,
+  productListResponseSchema,
+  productNameSchema,
+  productSortSchema,
+  publicCategoryListSchema,
+  publicCategorySchema,
+  serviceabilityQuerySchema,
+  serviceabilityResponseSchema,
+  skuSchema,
+  slugParamSchema,
+  slugSchema,
+  stockStatus,
+  stockStatusSchema,
+  STOCK_LOW_AT,
+  subcategoryResponseSchema,
+  unitLabelSchema,
+  updateCategoryBodySchema,
+  updateProductBodySchema,
+  updateSubcategoryBodySchema,
+} from './catalog.js';
+export type {
+  AdminCategory,
+  AdminCategoryListQuery,
+  AdminProduct,
+  AdminProductListQuery,
+  AdminProductListResponse,
+  AdminProductStatus,
+  AdminSubcategory,
+  CreateCategoryInput,
+  CreateProductInput,
+  CreateSubcategoryInput,
+  ProductCard,
+  ProductDetail,
+  ProductListQuery,
+  ProductListResponse,
+  ProductSort,
+  PublicCategory,
+  ServiceabilityResponse,
+  StockStatus,
+  UpdateCategoryInput,
+  UpdateProductInput,
+  UpdateSubcategoryInput,
+} from './catalog.js';
 export { ErrorCodes, errorResponseSchema } from './errors.js';
 export type { ErrorCode, ErrorResponse } from './errors.js';
+export { createImageUrlSchema, optionalImageUrlSchema } from './image-url.js';
 export { orderStatusSchema, paymentStatusSchema, roleSchema } from './enums.js';
 export type { OrderStatus, PaymentStatus, Role } from './enums.js';
 export { healthResponseSchema } from './health.js';
@@ -28,3 +94,5 @@ export { paginationQuerySchema } from './pagination.js';
 export type { PaginationQuery } from './pagination.js';
 export { passwordSchema } from './password.js';
 export type { Password } from './password.js';
+export { isPincodeServiceable, refusalForUnserviceablePincode } from './serviceability.js';
+export { slugify } from './slug.js';

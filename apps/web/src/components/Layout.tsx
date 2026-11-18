@@ -71,11 +71,23 @@ export function Layout() {
               {auth.status === 'authenticated' && auth.user ? (
                 <>
                   {auth.user.role === 'ADMIN' ? (
-                    <li>
-                      <Link className="underline-offset-4 hover:underline" to="/admin">
-                        Admin
-                      </Link>
-                    </li>
+                    <>
+                      <li>
+                        <Link className="underline-offset-4 hover:underline" to="/admin">
+                          Admin
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="underline-offset-4 hover:underline" to="/admin/categories">
+                          Categories
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="underline-offset-4 hover:underline" to="/admin/products">
+                          Products
+                        </Link>
+                      </li>
+                    </>
                   ) : null}
                   <li>
                     <span>

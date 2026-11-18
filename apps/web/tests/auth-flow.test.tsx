@@ -22,6 +22,16 @@ const customer: InitialAuth = {
   user,
 };
 
+function requestUrl(input: RequestInfo | URL): string {
+  if (typeof input === 'string') {
+    return input;
+  }
+  if (input instanceof URL) {
+    return input.href;
+  }
+  return input.url;
+}
+
 function renderAt(path: string, initialAuth?: InitialAuth) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   return render(<App router={router} initialAuth={initialAuth} />);
@@ -145,25 +155,39 @@ describe('auth screens and guards', () => {
   });
 
   it('restores a session from the refresh cookie and clears it on logout', async () => {
-    const fetchImpl = vi
-      .fn<typeof fetch>()
-      .mockResolvedValueOnce(Response.json({ accessToken: 'silent-token' }))
-      .mockResolvedValueOnce(Response.json({ user: { ...user, lastAddress: null } }))
-      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    const fetchImpl = vi.fn<typeof fetch>((input) => {
+      const url = requestUrl(input);
+      if (url.endsWith('/auth/refresh')) {
+        return Promise.resolve(Response.json({ accessToken: 'silent-token' }));
+      }
+      if (url.endsWith('/auth/me')) {
+        return Promise.resolve(Response.json({ user: { ...user, lastAddress: null } }));
+      }
+      if (url.endsWith('/auth/logout')) {
+        return Promise.resolve(new Response(null, { status: 204 }));
+      }
+      if (url.includes('/categories')) {
+        return Promise.resolve(Response.json([]));
+      }
+      return Promise.resolve(Response.json({ items: [], page: 1, pageSize: 24, total: 0 }));
+    });
     vi.stubGlobal('fetch', fetchImpl);
     renderAt('/');
-    expect(screen.getByRole('status')).toHaveTextContent('Checking session');
+    expect(screen.getByText('Checking session')).toBeInTheDocument();
     expect(await screen.findByText('Asha Rao')).toBeInTheDocument();
-    const refreshInit = fetchImpl.mock.calls[0]?.[1];
-    const refreshHeaders = new Headers(refreshInit?.headers);
+    const refreshCall = fetchImpl.mock.calls.find((call) =>
+      requestUrl(call[0]).endsWith('/auth/refresh'),
+    );
+    const refreshHeaders = new Headers(refreshCall?.[1]?.headers);
     expect(refreshHeaders.get('x-requested-with')).toBe('XMLHttpRequest');
-    expect(fetchImpl.mock.calls[0]?.[0]).toBe('/v1/auth/refresh');
 
     fireEvent.click(screen.getByRole('button', { name: 'Log out' }));
     expect(await screen.findByRole('link', { name: 'Log in' })).toBeInTheDocument();
-    const logoutHeaders = new Headers(fetchImpl.mock.calls[2]?.[1]?.headers);
+    const logoutCall = fetchImpl.mock.calls.find((call) =>
+      requestUrl(call[0]).endsWith('/auth/logout'),
+    );
+    const logoutHeaders = new Headers(logoutCall?.[1]?.headers);
     expect(logoutHeaders.get('x-requested-with')).toBe('XMLHttpRequest');
-    expect(fetchImpl.mock.calls[2]?.[0]).toBe('/v1/auth/logout');
   });
 
   it('stays a guest when refresh fails or the profile cannot be loaded', async () => {
@@ -187,7 +211,10 @@ describe('auth screens and guards', () => {
     renderAt('/', customer);
     fireEvent.click(screen.getByRole('button', { name: 'Log out everywhere' }));
     expect(await screen.findByRole('link', { name: 'Log in' })).toBeInTheDocument();
-    const headers = new Headers(fetchImpl.mock.calls[0]?.[1]?.headers);
+    const logoutCall = fetchImpl.mock.calls.find((call) =>
+      requestUrl(call[0]).endsWith('/auth/logout-all'),
+    );
+    const headers = new Headers(logoutCall?.[1]?.headers);
     expect(headers.get('authorization')).toBe('Bearer customer-token');
     expect(headers.get('x-requested-with')).toBe('XMLHttpRequest');
     expect(JSON.stringify(localStorage)).not.toContain('customer-token');
@@ -207,7 +234,7 @@ describe('auth screens and guards', () => {
     );
     renderAt('/', customer);
     fireEvent.click(screen.getByRole('button', { name: 'Log out' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Could not log out');
+    expect(await screen.findByText('Could not log out')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Log out' })).toBeInTheDocument();
   });
 
