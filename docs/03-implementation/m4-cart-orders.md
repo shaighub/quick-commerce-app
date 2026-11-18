@@ -2,10 +2,10 @@
 
 **Status:** In review.
 
-|              |                          |
-| ------------ | ------------------------ |
-| Branch       | `feature/m4-cart-orders` |
-| Pull request | Pending                  |
+|              |                                                       |
+| ------------ | ----------------------------------------------------- |
+| Branch       | `feature/m4-cart-orders`                              |
+| Pull request | https://github.com/shaighub/quick-commerce-app/pull/5 |
 
 ## What was built
 
