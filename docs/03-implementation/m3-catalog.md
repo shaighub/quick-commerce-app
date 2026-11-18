@@ -1,6 +1,8 @@
 # Milestone 3: Catalog
 
-**Status:** Done pending review.
+**Status:** Done.
+
+Approved at Checkpoint 3 and merged on 2026-11-18.
 
 |              |                                                       |
 | ------------ | ----------------------------------------------------- |

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 - 2026-11-18
+
+### Added
+
+- Customer cart: get, add, update quantity, remove, and clear, with stock checks and unavailable lines.
+- Checkout with an idempotency key, server totals in paise, `PRICE_CHANGED`, and `NOT_SERVICEABLE`.
+- Mock payment, order numbers `QC-YYYYMMDD-NNNNNN`, customer and admin order screens, and the pending-payment sweeper.
+
 ## 0.3.0 - 2026-11-18
 
 ### Added

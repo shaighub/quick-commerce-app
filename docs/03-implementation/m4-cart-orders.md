@@ -1,26 +1,54 @@
 # Milestone 4: Cart and orders
 
-**Status:** Not started.
+**Status:** In review.
 
-No branch, pull request, or verification result is recorded.
+|              |                          |
+| ------------ | ------------------------ |
+| Branch       | `feature/m4-cart-orders` |
+| Pull request | Pending                  |
 
-## Planned scope
+## What was built
 
-From the approved design. The IDs are the CART, ORD, and ADM modules.
+- Customer cart: `GET /v1/cart`, `POST /v1/cart/items`, `PATCH /v1/cart/items/:itemId`, `DELETE /v1/cart/items/:itemId`, and `DELETE /v1/cart`. Guests receive `401`. Admins receive `403`. Totals are computed on the server in paise, including `DELIVERY_FEE_PAISE` only when something can be bought.
+- Lines whose product is inactive or soft-deleted are `available: false` and are excluded from checkout ([ADR-015](../adr/015-unavailable-lines-excluded.md)). An active line above stock is `409 INSUFFICIENT_STOCK` with the available quantity. Quantity must be 1 to 10.
+- `POST /v1/orders/checkout` requires `Idempotency-Key`. The same key and body return the original result. A different body is `422 IDEMPOTENCY_KEY_REUSED` ([ADR-016](../adr/016-idempotency-key-lifetime.md)). `expectedTotalPaise` mismatch is `409 PRICE_CHANGED` with the fresh cart and no stock change. An unserved pincode is `422 NOT_SERVICEABLE` before stock is touched, using `refusalForUnserviceablePincode`.
+- Checkout locks products `FOR UPDATE` in id order, decrements with `stock >= quantity`, and issues `QC-YYYYMMDD-NNNNNN` from the IST counter inside the same transaction (ADR-006). `order_items` snapshot the unit price. Every status change writes `order_status_history`.
+- `MockGateway` implements `PaymentGateway` (ADR-008). The order is inserted as `PENDING_PAYMENT`, then the mock confirms it or marks `PAYMENT_FAILED` and restocks. Failure keeps the cart. Success clears it.
+- `POST /v1/internal/jobs/sweep` compares `X-Jobs-Token` in constant time, fails pending orders older than 15 minutes, and restocks them. A second run and a concurrent run do not restock twice. The API sweeps on startup. `.github/workflows/sweep.yml` calls the endpoint every 10 minutes when the secrets exist, and exits as a dry run when they do not.
+- Customers list and open only their own orders. Another customer’s order is `404`. Admins filter orders and move them through the allowed transitions. Cancel restocks and sets the mock payment to `REFUNDED`. `GET /v1/admin/dashboard` reports the IST day.
+- Storefront: cart, checkout with address prefilled from `GET /v1/auth/me`, mock payment, `PRICE_CHANGED` confirmation, order number on the confirmation screen, order history, and order detail. Add to cart works for a customer. A guest is sent to log in, and the item is added after sign-in. The header shows the cart count.
+- Admin orders list, detail, and status update, plus the dashboard summary.
+- OpenAPI is generated from the shared Zod schemas.
 
-- Cart routes and checkout, including `POST /v1/orders/checkout`, in [section 2](../design.md#2-api-endpoints-v1).
-- [Checkout transaction](../design.md#checkout-transaction-stock-decrement--price-snapshot) and the [checkout sequence](../design.md#checkout).
-- [Order number generation](../design.md#order-number-generation-qc-yyyymmdd-nnnnnn) (`QC-YYYYMMDD-NNNNNN`).
-- [Order status transitions](../design.md#order-status-transitions).
-- Screens [S05](../design.md#3-screens) through [S09](../design.md#3-screens), [A01](../design.md#3-screens), and [A05](../design.md#3-screens).
-- [ADR-006](../adr/006-order-number-counter.md), per-day order numbers.
-- [ADR-008](../adr/008-payment-gateway.md), PaymentGateway port, two-transaction checkout, and the pending-payment sweeper (FR-ORD-12).
-- [ADR-010](../adr/010-no-cart-reservation.md), no cart stock reservation in the MVP.
-- [ADR-005](../adr/005-money-as-paise.md), totals in paise.
+No new migration. The cart, order, payment, and counter tables were already in `20261117180000_init`.
 
-[PR #1](https://github.com/shaighub/quick-commerce-app/pull/1) left cart, checkout and payments, admin CRUD, order status, and the pending-payment sweeper for later milestones. Admin catalog CRUD is [Milestone 3](m3-catalog.md). Admin orders and the dashboard are this milestone (FR-ORD-07, FR-ORD-08, FR-ADM-01).
+## Verification
 
-The exit criterion is the acceptance criterion in the [traceability matrix](../design.md#4-requirement-traceability-matrix). No Checkpoint 4 result is recorded. [NFR-SEC-03](m5-hardening.md) (server-side validation and parameterized queries) also applies to the endpoints in this milestone. Its exit criterion is tracked once, on Milestone 5.
+Local, PostgreSQL 16, on 2026-11-18. GitHub Actions on the pull request is recorded after it finishes.
+
+| Check                         | Result                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lint                          | Pass, zero warnings                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Format check                  | Pass                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Type-check                    | Pass                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Migrate                       | `20261117180000_init` applied on a fresh `quick_commerce` database. No new migration.                                                                                                                                                                                                                                                                                                                                                        |
+| Drift                         | `prisma migrate diff` reported no difference                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Tests                         | `@qc/shared` 26 passed. `@qc/api` 105 passed. `@qc/web` 40 passed.                                                                                                                                                                                                                                                                                                                                                                           |
+| Coverage                      | Shared lines 98.74%, statements 98.75%, branches 95.74%, functions 100%. API lines 93.71%, statements 93.72%, branches 82.45%, functions 98%. Web lines 88.77%, statements 88.78%, branches 79.47% (gate 70%), functions 88.85%.                                                                                                                                                                                                             |
+| Build                         | Pass                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `node scripts/audit-deps.mjs` | Production dependencies clean. The only remaining high advisory is the allowed dev-only picomatch ReDoS.                                                                                                                                                                                                                                                                                                                                     |
+| OpenAPI check                 | Pass                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| gitleaks                      | Pass, no leaks                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Browser                       | Pass. Guest shop showed Amul Butter. Add to cart opened Log in with `next=`. After sign-up the header showed Cart (1). Quantity 2 totaled ₹137.00 and quantity 1 totaled ₹81.00. Checkout to 560001 confirmed QC-20261118-000001 at ₹81.00. Simulate failure kept the cart and named QC-20261118-000002. My orders showed the status history. Admin marked QC-20261118-000001 Packed. The dashboard showed 1 order today and ₹81.00 revenue. |
+
+## Deviations
+
+- Idempotency keys do not expire after 24 hours. The unique index cannot store a second order for the same key ([ADR-016](../adr/016-idempotency-key-lifetime.md)).
+- Inactive and soft-deleted lines are excluded from the purchased set instead of failing checkout by themselves ([ADR-015](../adr/015-unavailable-lines-excluded.md)). The screen still blocks Checkout while any line is unavailable.
+- `GET /v1/cart` also returns `deliveryFeePaise` and `totalPaise`. The design listed `itemCount` and `subtotalPaise`. The extra fields keep delivery-fee math on the server.
+- Admin order detail is `/admin/orders/:orderNumber`. The screen table only named the list route.
+- Playwright specs named in the traceability matrix are still outside CI, as in Milestone 3. Component tests and a browser pass cover the same flows.
+- Dashboard `ordersToday` counts paid or cancelled orders placed on the IST day. `revenueTodayPaise` excludes cancelled, pending, and failed orders. `pendingOrders` counts `PENDING_PAYMENT`, `CONFIRMED`, `PACKED`, and `OUT_FOR_DELIVERY` on any day.
 
 ## Exit criteria
 

@@ -180,7 +180,10 @@ export function HomePage() {
                       <p className="text-sm text-stone-700">{product.unitLabel}</p>
                       <p>{formatInr(product.pricePaise)}</p>
                       <StockBadge status={product.stockStatus} />
-                      <AddToCart available={product.stockStatus !== 'OUT_OF_STOCK'} />
+                      <AddToCart
+                        productId={product.id}
+                        available={product.stockStatus !== 'OUT_OF_STOCK'}
+                      />
                     </div>
                   </li>
                 ))}

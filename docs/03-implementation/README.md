@@ -2,15 +2,15 @@
 
 **Status:** In progress.
 
-Milestone 1 and Milestone 2 are done and merged. Milestone 3 is done pending review. Milestones 4 and 5 have not started. Checkpoint 3 approved Milestone 1 and Milestone 2 on 2026-11-18. [PR #1](https://github.com/shaighub/quick-commerce-app/pull/1) was squash-merged (merge commit `9b32b6c`) and [PR #3](https://github.com/shaighub/quick-commerce-app/pull/3) was squash-merged (merge commit `ceccc31`).
+Milestones 1, 2, and 3 are done and merged. Milestone 4 is in progress. Milestone 5 has not started. Checkpoint 3 approved Milestones 1, 2, and 3 on 2026-11-18. [PR #4](https://github.com/shaighub/quick-commerce-app/pull/4) was squash-merged on 2026-11-18.
 
-| Milestone          | Status              | Document                               | Pull request                                                   |
-| ------------------ | ------------------- | -------------------------------------- | -------------------------------------------------------------- |
-| M1 Foundation      | Done                | [m1-foundation.md](m1-foundation.md)   | [PR #1](https://github.com/shaighub/quick-commerce-app/pull/1) |
-| M2 Auth            | Done                | [m2-auth.md](m2-auth.md)               | [PR #3](https://github.com/shaighub/quick-commerce-app/pull/3) |
-| M3 Catalog         | Done pending review | [m3-catalog.md](m3-catalog.md)         | [PR #4](https://github.com/shaighub/quick-commerce-app/pull/4) |
-| M4 Cart and orders | Not started         | [m4-cart-orders.md](m4-cart-orders.md) | None                                                           |
-| M5 Hardening       | Not started         | [m5-hardening.md](m5-hardening.md)     | None                                                           |
+| Milestone          | Status      | Document                               | Pull request                                                   |
+| ------------------ | ----------- | -------------------------------------- | -------------------------------------------------------------- |
+| M1 Foundation      | Done        | [m1-foundation.md](m1-foundation.md)   | [PR #1](https://github.com/shaighub/quick-commerce-app/pull/1) |
+| M2 Auth            | Done        | [m2-auth.md](m2-auth.md)               | [PR #3](https://github.com/shaighub/quick-commerce-app/pull/3) |
+| M3 Catalog         | Done        | [m3-catalog.md](m3-catalog.md)         | [PR #4](https://github.com/shaighub/quick-commerce-app/pull/4) |
+| M4 Cart and orders | In progress | [m4-cart-orders.md](m4-cart-orders.md) | `feature/m4-cart-orders`                                       |
+| M5 Hardening       | Not started | [m5-hardening.md](m5-hardening.md)     | None                                                           |
 
 The approved design is [docs/design.md](../design.md). These notes group that design by milestone. The design file is unchanged.
 

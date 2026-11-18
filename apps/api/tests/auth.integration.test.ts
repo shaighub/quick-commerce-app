@@ -323,7 +323,7 @@ describe('auth HTTP', () => {
     const access = signedUp.accessToken;
     await database.prisma.order.create({
       data: {
-        orderNumber: `QC-20261118-${randomUUID().slice(0, 6)}`,
+        orderNumber: `QC-20261118-${String(Math.floor(Math.random() * 900000) + 100000)}`,
         userId,
         idempotencyKey: randomUUID(),
         requestHash: 'a'.repeat(64),
@@ -342,7 +342,7 @@ describe('auth HTTP', () => {
     });
     await database.prisma.order.create({
       data: {
-        orderNumber: `QC-20261118-${randomUUID().slice(0, 6)}`,
+        orderNumber: `QC-20261118-${String(Math.floor(Math.random() * 900000) + 100000)}`,
         userId,
         idempotencyKey: randomUUID(),
         requestHash: 'b'.repeat(64),

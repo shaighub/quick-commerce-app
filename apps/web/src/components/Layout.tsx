@@ -1,11 +1,39 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { ApiError } from '../api/client.js';
 import { useAuth } from '../auth/AuthProvider.js';
+import { clearPendingAdd, readPendingAdd } from '../commerce/pending-add.js';
+import { cartQueryKey, useCart } from '../commerce/use-cart.js';
 
 export function Layout() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const cart = useCart();
   const [actionError, setActionError] = useState<string | null>(null);
+  const cartCount = auth.user?.role === 'CUSTOMER' ? (cart.data?.itemCount ?? 0) : 0;
+
+  useEffect(() => {
+    if (auth.user?.role !== 'CUSTOMER') {
+      return;
+    }
+    const pending = readPendingAdd();
+    if (!pending) {
+      return;
+    }
+    clearPendingAdd();
+    void auth.api
+      .addCartItem(pending)
+      .then(async () => {
+        await queryClient.invalidateQueries({ queryKey: cartQueryKey });
+      })
+      .catch((error: unknown) => {
+        setActionError(
+          error instanceof ApiError ? error.message : 'Could not add the item to your cart',
+        );
+      });
+  }, [auth.api, auth.user, queryClient]);
 
   async function onLogout(everywhere: boolean): Promise<void> {
     try {
@@ -41,7 +69,7 @@ export function Layout() {
               </li>
               <li>
                 <Link className="underline-offset-4 hover:underline" to="/cart">
-                  Cart
+                  Cart{cartCount > 0 ? ` (${cartCount})` : ''}
                 </Link>
               </li>
               <li>
@@ -85,6 +113,11 @@ export function Layout() {
                       <li>
                         <Link className="underline-offset-4 hover:underline" to="/admin/products">
                           Products
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="underline-offset-4 hover:underline" to="/admin/orders">
+                          Admin orders
                         </Link>
                       </li>
                     </>

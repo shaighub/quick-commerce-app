@@ -18,3 +18,5 @@ Decisions from the approved design. The review references point at section 6 of 
 | [ADR-012](012-zod-contract.md)                    | Zod in packages/shared is the contract source                    |
 | [ADR-013](013-token-version-on-every-request.md)  | Check token_version on every authenticated request               |
 | [ADR-014](014-catalog-slugs-and-rupee-filters.md) | Catalog slugs stay put; shopper price filters use rupees         |
+| [ADR-015](015-unavailable-lines-excluded.md)      | Unavailable cart lines are excluded from checkout                |
+| [ADR-016](016-idempotency-key-lifetime.md)        | Idempotency keys last for the life of the account                |

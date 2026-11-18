@@ -6,6 +6,7 @@ import { SignUpPage } from './pages/SignUpPage.js';
 import {
   AdminCategoriesPage,
   AdminDashboardPage,
+  AdminOrderPage,
   AdminOrdersPage,
   AdminProductsPage,
   CartPage,
@@ -48,6 +49,7 @@ export const routes: RouteObject[] = [
           { path: 'admin/products/new', element: <ProductFormPage /> },
           { path: 'admin/products/:id/edit', element: <ProductFormPage /> },
           { path: 'admin/orders', element: <AdminOrdersPage /> },
+          { path: 'admin/orders/:orderNumber', element: <AdminOrderPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

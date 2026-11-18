@@ -1,6 +1,6 @@
 # Quick Commerce
 
-A single-store quick-commerce app: customers browse and order, an admin manages the catalog and order status, and guests can only browse. Milestone 1 is the foundation. Milestone 2 adds customer sign-up, login, refresh-token rotation, and route guards. Milestone 3 adds catalog browse, search, admin catalog management, and the pincode check. Cart and checkout are later milestones. The approved design is [`docs/design.md`](docs/design.md).
+A single-store quick-commerce app: customers browse and order, an admin manages the catalog and order status, and guests can only browse. Milestone 1 is the foundation. Milestone 2 adds customer sign-up, login, refresh-token rotation, and route guards. Milestone 3 adds catalog browse, search, admin catalog management, and the pincode check. Milestone 4 adds the cart, checkout with mock payment, customer and admin orders, and the pending-payment sweeper. The approved design is [`docs/design.md`](docs/design.md).
 
 ## Architecture
 
@@ -68,7 +68,19 @@ Admins manage categories, subcategories, and products under `/v1/admin`. Deletes
 
 `GET /v1/serviceability?pincode=` returns whether that pincode is in `SERVICEABLE_PINCODES`, plus `deliveryFeePaise`. An invalid pincode is `422`. Checkout's `422 NOT_SERVICEABLE` arrives with orders. The shared check is `refusalForUnserviceablePincode` in `@qc/shared`.
 
-Category and subcategory slugs are fixed at create (ADR-014). The storefront price filters `min` and `max` are rupees; the API query stays in paise. A guest's Add to cart link goes to `/login?next=`. The cart itself is the next milestone.
+Category and subcategory slugs are fixed at create (ADR-014). The storefront price filters `min` and `max` are rupees; the API query stays in paise. A guest's Add to cart link goes to `/login?next=` and the chosen product is added after sign-in.
+
+## Cart and orders
+
+Cart, checkout, and a customer’s own orders require the `CUSTOMER` role. Guests get `401`. Admins get `403` on those routes and use `/v1/admin/orders` and `/v1/admin/dashboard` instead.
+
+`GET /v1/cart` returns lines, an `available` flag, and totals in paise. Soft-deleted or inactive products stay in the cart as unavailable and are left out of checkout. A quantity above stock is `409 INSUFFICIENT_STOCK`. The header badge is the server’s `itemCount`.
+
+`POST /v1/orders/checkout` requires an `Idempotency-Key`. The same key and body returns the original result. The same key with a different body is `422 IDEMPOTENCY_KEY_REUSED`. The total the customer saw is `expectedTotalPaise`; a mismatch is `409 PRICE_CHANGED` and does not create an order. An unserved pincode is `422 NOT_SERVICEABLE` before stock changes. Stock is decremented inside the checkout transaction. The order number is `QC-YYYYMMDD-NNNNNN` from the IST daily counter (ADR-006).
+
+The order starts as `PENDING_PAYMENT`. `MockGateway` then confirms it or marks `PAYMENT_FAILED` and restocks. `POST /v1/internal/jobs/sweep` with `X-Jobs-Token` fails orders that are still pending after 15 minutes and restocks them. The API also sweeps on startup. A GitHub Actions schedule calls the same endpoint when `SWEEP_URL` and `JOBS_TOKEN` are set.
+
+Delivery fee comes from `DELIVERY_FEE_PAISE` (integer paise, default 0). It is added only when the cart has something that can be bought.
 
 ## Run
 
@@ -115,7 +127,7 @@ Copy `.env.example`. The API also reads `apps/api/.env`, which overrides the roo
 | `JWT_SECRET`                     | At least 32 characters. Signs access tokens (HS256). Generate a unique value per environment. |
 | `JWT_ACCESS_TTL_SECONDS`         | Access token lifetime. Default `900` (15 minutes).                                            |
 | `JWT_REFRESH_TTL_SECONDS`        | Refresh token lifetime. Default `604800` (7 days).                                            |
-| `JOBS_TOKEN`                     | At least 16 characters. Protects the future sweep endpoint.                                   |
+| `JOBS_TOKEN`                     | At least 16 characters. `X-Jobs-Token` for `POST /v1/internal/jobs/sweep`.                    |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Seed only. Password must be 8+ characters with a letter and a number.                         |
 | `DELIVERY_FEE_PAISE`             | Flat delivery fee in paise.                                                                   |
 | `SERVICEABLE_PINCODES`           | Comma-separated 6-digit pincodes.                                                             |
