@@ -27,7 +27,7 @@ Checkpoint 3 approved Milestone 1 and Milestone 2. Milestone 3 is done pending r
 | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------ |
 | M1 Foundation      | Done                | [PR #1](https://github.com/shaighub/quick-commerce-app/pull/1) ([notes](03-implementation/m1-foundation.md)) |
 | M2 Auth            | Done                | [PR #3](https://github.com/shaighub/quick-commerce-app/pull/3) ([notes](03-implementation/m2-auth.md))       |
-| M3 Catalog         | Done pending review | `feature/m3-catalog` ([notes](03-implementation/m3-catalog.md))                                              |
+| M3 Catalog         | Done pending review | [PR #4](https://github.com/shaighub/quick-commerce-app/pull/4) ([notes](03-implementation/m3-catalog.md))    |
 | M4 Cart and orders | Not started         | None ([notes](03-implementation/m4-cart-orders.md))                                                          |
 | M5 Hardening       | Not started         | None ([notes](03-implementation/m5-hardening.md))                                                            |
 

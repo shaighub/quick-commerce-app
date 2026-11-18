@@ -2,10 +2,10 @@
 
 **Status:** Done pending review.
 
-|              |                                                                 |
-| ------------ | --------------------------------------------------------------- |
-| Branch       | `feature/m3-catalog`                                            |
-| Pull request | Open against `main`. The URL is recorded when the PR is opened. |
+|              |                                                       |
+| ------------ | ----------------------------------------------------- |
+| Branch       | `feature/m3-catalog`                                  |
+| Pull request | https://github.com/shaighub/quick-commerce-app/pull/4 |
 
 ## What was built
 

@@ -8,7 +8,7 @@ Milestone 1 and Milestone 2 are done and merged. Milestone 3 is done pending rev
 | ------------------ | ------------------- | -------------------------------------- | -------------------------------------------------------------- |
 | M1 Foundation      | Done                | [m1-foundation.md](m1-foundation.md)   | [PR #1](https://github.com/shaighub/quick-commerce-app/pull/1) |
 | M2 Auth            | Done                | [m2-auth.md](m2-auth.md)               | [PR #3](https://github.com/shaighub/quick-commerce-app/pull/3) |
-| M3 Catalog         | Done pending review | [m3-catalog.md](m3-catalog.md)         | `feature/m3-catalog`                                           |
+| M3 Catalog         | Done pending review | [m3-catalog.md](m3-catalog.md)         | [PR #4](https://github.com/shaighub/quick-commerce-app/pull/4) |
 | M4 Cart and orders | Not started         | [m4-cart-orders.md](m4-cart-orders.md) | None                                                           |
 | M5 Hardening       | Not started         | [m5-hardening.md](m5-hardening.md)     | None                                                           |
 
