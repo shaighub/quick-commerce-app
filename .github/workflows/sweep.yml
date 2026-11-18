@@ -1,0 +1,28 @@
+name: Sweep pending payments
+
+on:
+  schedule:
+    # Every 10 minutes. The handler only touches orders older than 15 minutes.
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the sweep endpoint
+        env:
+          SWEEP_URL: ${{ secrets.SWEEP_URL }}
+          JOBS_TOKEN: ${{ secrets.JOBS_TOKEN }}
+        run: |
+          if [ -z "$SWEEP_URL" ] || [ -z "$JOBS_TOKEN" ]; then
+            echo "SWEEP_URL or JOBS_TOKEN is not configured. Dry run only."
+            exit 0
+          fi
+          curl --fail-with-body --silent --show-error --request POST "$SWEEP_URL" \
+            --header "X-Jobs-Token: $JOBS_TOKEN" \
+            --header "content-type: application/json" \
+            --data '{"olderThanMinutes":15}'

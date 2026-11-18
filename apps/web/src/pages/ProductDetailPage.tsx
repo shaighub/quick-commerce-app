@@ -83,7 +83,7 @@ export function ProductDetailPage() {
           {item.description ? (
             <p className="max-w-prose text-stone-800">{item.description}</p>
           ) : null}
-          <AddToCart available={item.stockStatus !== 'OUT_OF_STOCK'} />
+          <AddToCart productId={item.id} available={item.stockStatus !== 'OUT_OF_STOCK'} />
         </div>
       </div>
       {related.data && related.data.items.some((other) => other.id !== item.id) ? (

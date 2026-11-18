@@ -269,15 +269,53 @@ describe('storefront catalog', () => {
   });
 
   it('shows the product detail breadcrumb and sends a customer toward the cart', async () => {
+    const emptyCart = {
+      items: [],
+      itemCount: 0,
+      subtotalPaise: 0,
+      deliveryFeePaise: 0,
+      totalPaise: 0,
+    };
     vi.stubGlobal(
       'fetch',
-      vi.fn<typeof fetch>((input) => {
+      vi.fn<typeof fetch>((input, init) => {
         const url = requestUrl(input);
         if (url.includes('/products/amul-butter')) {
           return json({ product: detail });
         }
         if (url.includes('/products')) {
           return json({ items: [card], page: 1, pageSize: 4, total: 1 });
+        }
+        if (url.includes('/cart')) {
+          return json(
+            init?.method === 'POST'
+              ? {
+                  ...emptyCart,
+                  itemCount: 1,
+                  items: [
+                    {
+                      id: '40000000-0000-4000-8000-000000000001',
+                      quantity: 1,
+                      lineTotalPaise: 5600,
+                      available: true,
+                      product: {
+                        id: productId,
+                        name: 'Amul Butter',
+                        slug: 'amul-butter',
+                        unitLabel: '500 g',
+                        pricePaise: 5600,
+                        imageUrl: null,
+                        stock: 25,
+                        isActive: true,
+                      },
+                    },
+                  ],
+                  subtotalPaise: 5600,
+                  deliveryFeePaise: 2500,
+                  totalPaise: 8100,
+                }
+              : emptyCart,
+          );
         }
         return json([]);
       }),
@@ -291,7 +329,7 @@ describe('storefront catalog', () => {
     );
     expect(screen.getByText('500 g')).toBeInTheDocument();
     expect(screen.getByText('Salted butter')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('link', { name: 'Add to cart' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add to cart' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Cart' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/cart');
   });

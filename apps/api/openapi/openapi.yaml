@@ -3,14 +3,15 @@ openapi: 3.1.0
 info:
   title: Quick Commerce API
   version: 0.1.0
-  description: Auth, catalog, serviceability, health, and the shared error
-    contract. Schemas are generated from packages/shared. Later milestones add
-    cart and orders.
+  description: Auth, catalog, cart, checkout, orders, serviceability, health, and
+    the shared error contract. Schemas are generated from packages/shared.
 servers:
   - url: /
 tags:
   - name: Auth
   - name: Catalog
+  - name: Cart
+  - name: Orders
   - name: Serviceability
   - name: System
 paths:
@@ -41,19 +42,28 @@ paths:
                 $ref: "#/components/schemas/AuthSession"
         "400":
           description: Request body is not valid JSON
-          content: &a1
+          content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: EMAIL_TAKEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: VALIDATION
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/auth/login:
     post:
       operationId: login
@@ -81,19 +91,34 @@ paths:
                 $ref: "#/components/schemas/AuthSession"
         "400":
           description: Request body is not valid JSON
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: INVALID_CREDENTIALS
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: VALIDATION
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "423":
           description: ACCOUNT_LOCKED. details[0].retryAfter is seconds.
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/auth/refresh:
     post:
       operationId: refresh
@@ -125,13 +150,22 @@ paths:
                 $ref: "#/components/schemas/AccessTokenResponse"
         "401":
           description: TOKEN_INVALID
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Missing X-Requested-With or foreign Origin
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/auth/logout:
     post:
       operationId: logout
@@ -154,10 +188,16 @@ paths:
           description: Refresh token revoked and cookie cleared.
         "403":
           description: Missing X-Requested-With or foreign Origin
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/auth/logout-all:
     post:
       operationId: logoutAll
@@ -178,13 +218,22 @@ paths:
             cookie cleared.
         "401":
           description: UNAUTHORIZED or TOKEN_INVALID
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Missing X-Requested-With or foreign Origin
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/auth/me:
     get:
       operationId: me
@@ -202,10 +251,16 @@ paths:
                 $ref: "#/components/schemas/MeResponse"
         "401":
           description: UNAUTHORIZED, TOKEN_INVALID, or TOKEN_EXPIRED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/categories:
     get:
       operationId: listCategories
@@ -230,7 +285,10 @@ paths:
           description: Not modified
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/admin/categories:
     get:
       operationId: listAdminCategories
@@ -256,13 +314,22 @@ paths:
                 $ref: "#/components/schemas/AdminCategoryList"
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       operationId: createCategory
       summary: Create a category
@@ -285,19 +352,34 @@ paths:
                 $ref: "#/components/schemas/CategoryResponse"
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: NAME_TAKEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: VALIDATION or IMAGE_HOST_NOT_ALLOWED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/admin/categories/{id}:
     patch:
       operationId: updateCategory
@@ -328,19 +410,34 @@ paths:
                 $ref: "#/components/schemas/CategoryResponse"
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: NOT_FOUND
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: NAME_TAKEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: VALIDATION or IMAGE_HOST_NOT_ALLOWED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       operationId: deleteCategory
       summary: Soft-delete an empty category
@@ -360,16 +457,28 @@ paths:
           description: Soft-deleted
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: NOT_FOUND
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: CATEGORY_NOT_EMPTY
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/admin/categories/{id}/subcategories:
     post:
       operationId: createSubcategory
@@ -400,19 +509,34 @@ paths:
                 $ref: "#/components/schemas/SubcategoryResponse"
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: NOT_FOUND
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: NAME_TAKEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: VALIDATION
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/admin/subcategories/{id}:
     patch:
       operationId: updateSubcategory
@@ -443,19 +567,34 @@ paths:
                 $ref: "#/components/schemas/SubcategoryResponse"
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: NOT_FOUND
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: NAME_TAKEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: VALIDATION
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       operationId: deleteSubcategory
       summary: Soft-delete an empty subcategory
@@ -475,16 +614,28 @@ paths:
           description: Soft-deleted
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: NOT_FOUND
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: SUBCATEGORY_NOT_EMPTY
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/products:
     get:
       operationId: listProducts
@@ -564,10 +715,16 @@ paths:
           description: Not modified
         "422":
           description: VALIDATION
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/products/{slug}:
     get:
       operationId: getProduct
@@ -598,10 +755,16 @@ paths:
           description: Not modified
         "404":
           description: NOT_FOUND
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/admin/products:
     get:
       operationId: listAdminProducts
@@ -661,13 +824,22 @@ paths:
                 $ref: "#/components/schemas/AdminProductListResponse"
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: VALIDATION
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       operationId: createProduct
       summary: Create a product
@@ -690,19 +862,34 @@ paths:
                 $ref: "#/components/schemas/AdminProductResponse"
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Subcategory not found
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: SKU_TAKEN or SLUG_TAKEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: VALIDATION or IMAGE_HOST_NOT_ALLOWED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/admin/products/{id}:
     get:
       operationId: getAdminProduct
@@ -727,13 +914,22 @@ paths:
                 $ref: "#/components/schemas/AdminProductResponse"
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: NOT_FOUND
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     patch:
       operationId: updateProduct
       summary: Update a product
@@ -763,19 +959,34 @@ paths:
                 $ref: "#/components/schemas/AdminProductResponse"
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: NOT_FOUND
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: SKU_TAKEN or SLUG_TAKEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: VALIDATION or IMAGE_HOST_NOT_ALLOWED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       operationId: deleteProduct
       summary: Soft-delete a product
@@ -796,13 +1007,22 @@ paths:
             snapshot.
         "401":
           description: UNAUTHORIZED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: FORBIDDEN
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: NOT_FOUND
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/serviceability:
     get:
       operationId: checkServiceability
@@ -825,10 +1045,639 @@ paths:
                 $ref: "#/components/schemas/ServiceabilityResponse"
         "422":
           description: VALIDATION for a pincode that is not 6 digits
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "429":
           description: RATE_LIMITED
-          content: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/cart:
+    get:
+      operationId: getCart
+      summary: Current customer cart with server-side totals
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Cart. Unavailable lines are flagged and excluded from the subtotal.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: clearCart
+      summary: Remove every line from the cart
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Cart cleared
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/cart/items:
+    post:
+      operationId: addCartItem
+      summary: Add a product or merge it into an existing line
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddCartItem"
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: INSUFFICIENT_STOCK. details include available.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: VALIDATION
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/cart/items/{itemId}:
+    patch:
+      operationId: updateCartItem
+      summary: Set a line quantity from 1 to 10
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCartItem"
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT_FOUND when the line belongs to someone else
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: INSUFFICIENT_STOCK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: VALIDATION
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: removeCartItem
+      summary: Remove one cart line
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/orders/checkout:
+    post:
+      operationId: checkout
+      summary: Place an order and run the mock payment
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutRequest"
+      responses:
+        "201":
+          description: Order confirmed. The same key and body returns this order again.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerOrderResponse"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "402":
+          description: PAYMENT_FAILED. details[0].orderNumber is the failed attempt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: INSUFFICIENT_STOCK or PRICE_CHANGED. PRICE_CHANGED details include
+            the cart.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: CART_EMPTY, NOT_SERVICEABLE, IDEMPOTENCY_KEY_REUSED, or VALIDATION
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/orders:
+    get:
+      operationId: listOrders
+      summary: The signed-in customer’s orders, newest first
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Own orders only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerOrderList"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: VALIDATION
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/orders/{orderNumber}:
+    get:
+      operationId: getOrder
+      summary: One order belonging to the signed-in customer
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: orderNumber
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order with item snapshots, payment, and status history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerOrderResponse"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT_FOUND for a missing order or another customer’s order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: VALIDATION
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/admin/orders:
+    get:
+      operationId: listAdminOrders
+      summary: All orders, with status, search, and date filters
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: q
+          schema:
+            type: string
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Admin order list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrderList"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: VALIDATION
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/admin/orders/{orderNumber}:
+    get:
+      operationId: getAdminOrder
+      summary: Any order, plus the statuses an admin may set next
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: orderNumber
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order, customer, and allowedNextStatuses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrderDetail"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/admin/orders/{orderNumber}/status:
+    patch:
+      operationId: updateOrderStatus
+      summary: Move an order along an allowed admin transition
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: orderNumber
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatus"
+      responses:
+        "200":
+          description: Updated order. Cancelling restocks and refunds the mock payment.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrderDetail"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: INVALID_TRANSITION
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: VALIDATION
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/admin/dashboard:
+    get:
+      operationId: adminDashboard
+      summary: Today’s orders, revenue, open orders, low stock, and recent orders
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: IST day totals. Revenue excludes failed, pending, and cancelled
+            orders.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+        "401":
+          description: UNAUTHORIZED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/internal/jobs/sweep:
+    post:
+      operationId: sweepPendingPayments
+      summary: Fail pending-payment orders older than the window and restock them
+      tags:
+        - System
+      security:
+        - jobsToken: []
+      parameters:
+        - in: header
+          name: X-Jobs-Token
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SweepRequest"
+      responses:
+        "200":
+          description: How many orders were swept and how many units were restocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SweepResponse"
+        "401":
+          description: UNAUTHORIZED without a valid X-Jobs-Token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: VALIDATION
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/health:
     get:
       operationId: getHealth
@@ -854,6 +1703,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    jobsToken:
+      type: apiKey
+      in: header
+      name: X-Jobs-Token
   schemas:
     SignupRequest:
       type: object
@@ -1915,4 +2768,910 @@ components:
         - pincode
         - serviceable
         - deliveryFeePaise
+      additionalProperties: false
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              product:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  name:
+                    type: string
+                  slug:
+                    type: string
+                  unitLabel:
+                    type: string
+                  pricePaise:
+                    type: integer
+                    exclusiveMinimum: 0
+                    maximum: 9007199254740991
+                  imageUrl:
+                    type:
+                      - string
+                      - "null"
+                  stock:
+                    type: integer
+                    minimum: 0
+                    maximum: 9007199254740991
+                  isActive:
+                    type: boolean
+                required:
+                  - id
+                  - name
+                  - slug
+                  - unitLabel
+                  - pricePaise
+                  - imageUrl
+                  - stock
+                  - isActive
+                additionalProperties: false
+              quantity:
+                type: integer
+                minimum: 1
+                maximum: 10
+              lineTotalPaise:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+              available:
+                type: boolean
+            required:
+              - id
+              - product
+              - quantity
+              - lineTotalPaise
+              - available
+            additionalProperties: false
+        itemCount:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        subtotalPaise:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        deliveryFeePaise:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        totalPaise:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+        - items
+        - itemCount
+        - subtotalPaise
+        - deliveryFeePaise
+        - totalPaise
+      additionalProperties: false
+    AddCartItem:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 10
+      required:
+        - productId
+        - quantity
+      additionalProperties: false
+    UpdateCartItem:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 10
+      required:
+        - quantity
+      additionalProperties: false
+    CheckoutRequest:
+      type: object
+      properties:
+        address:
+          type: object
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 100
+            phone:
+              type: string
+              pattern: ^(\+91[6-9]\d{9}|[6-9]\d{9})$
+            line1:
+              type: string
+              minLength: 1
+              maxLength: 200
+            line2:
+              type: string
+              maxLength: 200
+            city:
+              type: string
+              minLength: 1
+              maxLength: 80
+            state:
+              type: string
+              minLength: 1
+              maxLength: 80
+            pincode:
+              type: string
+              pattern: ^[1-9][0-9]{5}$
+          required:
+            - name
+            - phone
+            - line1
+            - city
+            - state
+            - pincode
+          additionalProperties: false
+        payment:
+          type: object
+          properties:
+            method:
+              type: string
+              const: MOCK
+            simulate:
+              type: string
+              enum:
+                - success
+                - failure
+          required:
+            - method
+            - simulate
+          additionalProperties: false
+        expectedTotalPaise:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+        - address
+        - payment
+        - expectedTotalPaise
+      additionalProperties: false
+    CustomerOrderResponse:
+      type: object
+      properties:
+        order:
+          type: object
+          properties:
+            orderNumber:
+              type: string
+              pattern: ^QC-\d{8}-\d{6}$
+            status:
+              type: string
+              enum:
+                - PENDING_PAYMENT
+                - PAYMENT_FAILED
+                - CONFIRMED
+                - PACKED
+                - OUT_FOR_DELIVERY
+                - DELIVERED
+                - CANCELLED
+            itemCount:
+              type: integer
+              exclusiveMinimum: 0
+              maximum: 9007199254740991
+            subtotalPaise:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            deliveryFeePaise:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            totalPaise:
+              type: integer
+              exclusiveMinimum: 0
+              maximum: 9007199254740991
+            placedAt:
+              type: string
+            address:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                line1:
+                  type: string
+                line2:
+                  type:
+                    - string
+                    - "null"
+                city:
+                  type: string
+                state:
+                  type: string
+                pincode:
+                  type: string
+              required:
+                - name
+                - phone
+                - line1
+                - line2
+                - city
+                - state
+                - pincode
+              additionalProperties: false
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  productId:
+                    type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  productName:
+                    type: string
+                  sku:
+                    type: string
+                  unitLabel:
+                    type: string
+                  unitPricePaise:
+                    type: integer
+                    exclusiveMinimum: 0
+                    maximum: 9007199254740991
+                  quantity:
+                    type: integer
+                    minimum: 1
+                    maximum: 10
+                  lineTotalPaise:
+                    type: integer
+                    exclusiveMinimum: 0
+                    maximum: 9007199254740991
+                required:
+                  - id
+                  - productId
+                  - productName
+                  - sku
+                  - unitLabel
+                  - unitPricePaise
+                  - quantity
+                  - lineTotalPaise
+                additionalProperties: false
+            payment:
+              anyOf:
+                - type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                    provider:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                        - PENDING
+                        - SUCCEEDED
+                        - FAILED
+                        - REFUNDED
+                    amountPaise:
+                      type: integer
+                      exclusiveMinimum: 0
+                      maximum: 9007199254740991
+                    currency:
+                      type: string
+                    providerRef:
+                      type:
+                        - string
+                        - "null"
+                    failureReason:
+                      type:
+                        - string
+                        - "null"
+                  required:
+                    - id
+                    - provider
+                    - status
+                    - amountPaise
+                    - currency
+                    - providerRef
+                    - failureReason
+                  additionalProperties: false
+                - type: "null"
+            history:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  fromStatus:
+                    anyOf:
+                      - type: string
+                        enum:
+                          - PENDING_PAYMENT
+                          - PAYMENT_FAILED
+                          - CONFIRMED
+                          - PACKED
+                          - OUT_FOR_DELIVERY
+                          - DELIVERED
+                          - CANCELLED
+                      - type: "null"
+                  toStatus:
+                    type: string
+                    enum:
+                      - PENDING_PAYMENT
+                      - PAYMENT_FAILED
+                      - CONFIRMED
+                      - PACKED
+                      - OUT_FOR_DELIVERY
+                      - DELIVERED
+                      - CANCELLED
+                  note:
+                    type:
+                      - string
+                      - "null"
+                  createdAt:
+                    type: string
+                  changedById:
+                    anyOf:
+                      - type: string
+                        format: uuid
+                        pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                      - type: "null"
+                required:
+                  - id
+                  - fromStatus
+                  - toStatus
+                  - note
+                  - createdAt
+                  - changedById
+                additionalProperties: false
+          required:
+            - orderNumber
+            - status
+            - itemCount
+            - subtotalPaise
+            - deliveryFeePaise
+            - totalPaise
+            - placedAt
+            - address
+            - items
+            - payment
+            - history
+          additionalProperties: false
+      required:
+        - order
+      additionalProperties: false
+    CustomerOrderList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              orderNumber:
+                type: string
+                pattern: ^QC-\d{8}-\d{6}$
+              placedAt:
+                type: string
+              itemCount:
+                type: integer
+                exclusiveMinimum: 0
+                maximum: 9007199254740991
+              totalPaise:
+                type: integer
+                exclusiveMinimum: 0
+                maximum: 9007199254740991
+              status:
+                type: string
+                enum:
+                  - PENDING_PAYMENT
+                  - PAYMENT_FAILED
+                  - CONFIRMED
+                  - PACKED
+                  - OUT_FOR_DELIVERY
+                  - DELIVERED
+                  - CANCELLED
+            required:
+              - orderNumber
+              - placedAt
+              - itemCount
+              - totalPaise
+              - status
+            additionalProperties: false
+        page:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        pageSize:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        total:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+      additionalProperties: false
+    AdminOrderList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              orderNumber:
+                type: string
+                pattern: ^QC-\d{8}-\d{6}$
+              customer:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  name:
+                    type: string
+                  email:
+                    type: string
+                required:
+                  - id
+                  - name
+                  - email
+                additionalProperties: false
+              placedAt:
+                type: string
+              totalPaise:
+                type: integer
+                exclusiveMinimum: 0
+                maximum: 9007199254740991
+              paymentStatus:
+                anyOf:
+                  - type: string
+                    enum:
+                      - PENDING
+                      - SUCCEEDED
+                      - FAILED
+                      - REFUNDED
+                  - type: "null"
+              status:
+                type: string
+                enum:
+                  - PENDING_PAYMENT
+                  - PAYMENT_FAILED
+                  - CONFIRMED
+                  - PACKED
+                  - OUT_FOR_DELIVERY
+                  - DELIVERED
+                  - CANCELLED
+            required:
+              - orderNumber
+              - customer
+              - placedAt
+              - totalPaise
+              - paymentStatus
+              - status
+            additionalProperties: false
+        page:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        pageSize:
+          type: integer
+          minimum: -9007199254740991
+          maximum: 9007199254740991
+        total:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+        - items
+        - page
+        - pageSize
+        - total
+      additionalProperties: false
+    AdminOrderDetail:
+      type: object
+      properties:
+        order:
+          type: object
+          properties:
+            orderNumber:
+              type: string
+              pattern: ^QC-\d{8}-\d{6}$
+            status:
+              type: string
+              enum:
+                - PENDING_PAYMENT
+                - PAYMENT_FAILED
+                - CONFIRMED
+                - PACKED
+                - OUT_FOR_DELIVERY
+                - DELIVERED
+                - CANCELLED
+            itemCount:
+              type: integer
+              exclusiveMinimum: 0
+              maximum: 9007199254740991
+            subtotalPaise:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            deliveryFeePaise:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            totalPaise:
+              type: integer
+              exclusiveMinimum: 0
+              maximum: 9007199254740991
+            placedAt:
+              type: string
+            address:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                line1:
+                  type: string
+                line2:
+                  type:
+                    - string
+                    - "null"
+                city:
+                  type: string
+                state:
+                  type: string
+                pincode:
+                  type: string
+              required:
+                - name
+                - phone
+                - line1
+                - line2
+                - city
+                - state
+                - pincode
+              additionalProperties: false
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  productId:
+                    type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  productName:
+                    type: string
+                  sku:
+                    type: string
+                  unitLabel:
+                    type: string
+                  unitPricePaise:
+                    type: integer
+                    exclusiveMinimum: 0
+                    maximum: 9007199254740991
+                  quantity:
+                    type: integer
+                    minimum: 1
+                    maximum: 10
+                  lineTotalPaise:
+                    type: integer
+                    exclusiveMinimum: 0
+                    maximum: 9007199254740991
+                required:
+                  - id
+                  - productId
+                  - productName
+                  - sku
+                  - unitLabel
+                  - unitPricePaise
+                  - quantity
+                  - lineTotalPaise
+                additionalProperties: false
+            payment:
+              anyOf:
+                - type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                    provider:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                        - PENDING
+                        - SUCCEEDED
+                        - FAILED
+                        - REFUNDED
+                    amountPaise:
+                      type: integer
+                      exclusiveMinimum: 0
+                      maximum: 9007199254740991
+                    currency:
+                      type: string
+                    providerRef:
+                      type:
+                        - string
+                        - "null"
+                    failureReason:
+                      type:
+                        - string
+                        - "null"
+                  required:
+                    - id
+                    - provider
+                    - status
+                    - amountPaise
+                    - currency
+                    - providerRef
+                    - failureReason
+                  additionalProperties: false
+                - type: "null"
+            history:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  fromStatus:
+                    anyOf:
+                      - type: string
+                        enum:
+                          - PENDING_PAYMENT
+                          - PAYMENT_FAILED
+                          - CONFIRMED
+                          - PACKED
+                          - OUT_FOR_DELIVERY
+                          - DELIVERED
+                          - CANCELLED
+                      - type: "null"
+                  toStatus:
+                    type: string
+                    enum:
+                      - PENDING_PAYMENT
+                      - PAYMENT_FAILED
+                      - CONFIRMED
+                      - PACKED
+                      - OUT_FOR_DELIVERY
+                      - DELIVERED
+                      - CANCELLED
+                  note:
+                    type:
+                      - string
+                      - "null"
+                  createdAt:
+                    type: string
+                  changedById:
+                    anyOf:
+                      - type: string
+                        format: uuid
+                        pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                      - type: "null"
+                required:
+                  - id
+                  - fromStatus
+                  - toStatus
+                  - note
+                  - createdAt
+                  - changedById
+                additionalProperties: false
+          required:
+            - orderNumber
+            - status
+            - itemCount
+            - subtotalPaise
+            - deliveryFeePaise
+            - totalPaise
+            - placedAt
+            - address
+            - items
+            - payment
+            - history
+          additionalProperties: false
+        customer:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            name:
+              type: string
+            email:
+              type: string
+          required:
+            - id
+            - name
+            - email
+          additionalProperties: false
+        allowedNextStatuses:
+          type: array
+          items:
+            type: string
+            enum:
+              - PENDING_PAYMENT
+              - PAYMENT_FAILED
+              - CONFIRMED
+              - PACKED
+              - OUT_FOR_DELIVERY
+              - DELIVERED
+              - CANCELLED
+      required:
+        - order
+        - customer
+        - allowedNextStatuses
+      additionalProperties: false
+    UpdateOrderStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - PENDING_PAYMENT
+            - PAYMENT_FAILED
+            - CONFIRMED
+            - PACKED
+            - OUT_FOR_DELIVERY
+            - DELIVERED
+            - CANCELLED
+        note:
+          type: string
+          maxLength: 500
+      required:
+        - status
+      additionalProperties: false
+    Dashboard:
+      type: object
+      properties:
+        ordersToday:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        revenueTodayPaise:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        pendingOrders:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        lowStock:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+              name:
+                type: string
+              sku:
+                type: string
+              stock:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+            required:
+              - id
+              - name
+              - sku
+              - stock
+            additionalProperties: false
+        recentOrders:
+          type: array
+          items:
+            type: object
+            properties:
+              orderNumber:
+                type: string
+                pattern: ^QC-\d{8}-\d{6}$
+              customer:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+                  name:
+                    type: string
+                  email:
+                    type: string
+                required:
+                  - id
+                  - name
+                  - email
+                additionalProperties: false
+              placedAt:
+                type: string
+              totalPaise:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+              status:
+                type: string
+                enum:
+                  - PENDING_PAYMENT
+                  - PAYMENT_FAILED
+                  - CONFIRMED
+                  - PACKED
+                  - OUT_FOR_DELIVERY
+                  - DELIVERED
+                  - CANCELLED
+            required:
+              - orderNumber
+              - customer
+              - placedAt
+              - totalPaise
+              - status
+            additionalProperties: false
+      required:
+        - ordersToday
+        - revenueTodayPaise
+        - pendingOrders
+        - lowStock
+        - recentOrders
+      additionalProperties: false
+    SweepRequest:
+      type: object
+      properties:
+        olderThanMinutes:
+          default: 15
+          type: integer
+          minimum: 1
+          maximum: 1440
+      required:
+        - olderThanMinutes
+      additionalProperties: false
+    SweepResponse:
+      type: object
+      properties:
+        swept:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        restockedItems:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+        - swept
+        - restockedItems
       additionalProperties: false

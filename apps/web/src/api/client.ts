@@ -1,10 +1,16 @@
 import {
   accessTokenResponseSchema,
   adminCategoryListSchema,
+  adminOrderDetailSchema,
+  adminOrderListSchema,
   adminProductListResponseSchema,
   adminProductResponseSchema,
   authSessionSchema,
+  cartSchema,
   categoryResponseSchema,
+  customerOrderListSchema,
+  customerOrderResponseSchema,
+  dashboardSchema,
   errorResponseSchema,
   healthResponseSchema,
   meResponseSchema,
@@ -14,10 +20,17 @@ import {
   serviceabilityResponseSchema,
   subcategoryResponseSchema,
   type AdminCategory,
+  type AdminOrderDetail,
+  type AdminOrderList,
   type AdminProduct,
   type AdminProductListResponse,
   type AdminSubcategory,
   type AuthSession,
+  type Cart,
+  type CheckoutInput,
+  type CustomerOrder,
+  type CustomerOrderList,
+  type Dashboard,
   type HealthResponse,
   type LoginInput,
   type MeResponse,
@@ -65,6 +78,7 @@ interface RequestOptions {
   authenticate?: boolean;
   csrf?: boolean;
   retry?: boolean;
+  headers?: Record<string, string>;
 }
 
 export function apiBaseUrl(): string {
@@ -105,6 +119,11 @@ export function createApiClient(options: ApiClientOptions = {}) {
     }
     if (init.csrf) {
       headers.set('x-requested-with', 'XMLHttpRequest');
+    }
+    if (init.headers) {
+      for (const [name, value] of Object.entries(init.headers)) {
+        headers.set(name, value);
+      }
     }
     if (init.authenticate) {
       const token = options.getAccessToken?.() ?? null;
@@ -300,6 +319,82 @@ export function createApiClient(options: ApiClientOptions = {}) {
         `/admin/products/${id}`,
         { method: 'DELETE', authenticate: true },
         () => undefined,
+      );
+    },
+    getCart(): Promise<Cart> {
+      return request('/cart', { authenticate: true }, (value) => cartSchema.parse(value));
+    },
+    addCartItem(body: { productId: string; quantity: number }): Promise<Cart> {
+      return request('/cart/items', { method: 'POST', body, authenticate: true }, (value) =>
+        cartSchema.parse(value),
+      );
+    },
+    updateCartItem(itemId: string, quantity: number): Promise<Cart> {
+      return request(
+        `/cart/items/${itemId}`,
+        { method: 'PATCH', body: { quantity }, authenticate: true },
+        (value) => cartSchema.parse(value),
+      );
+    },
+    removeCartItem(itemId: string): Promise<Cart> {
+      return request(`/cart/items/${itemId}`, { method: 'DELETE', authenticate: true }, (value) =>
+        cartSchema.parse(value),
+      );
+    },
+    clearCart(): Promise<void> {
+      return request('/cart', { method: 'DELETE', authenticate: true }, () => undefined);
+    },
+    checkout(body: CheckoutInput, idempotencyKey: string): Promise<CustomerOrder> {
+      return request(
+        '/orders/checkout',
+        {
+          method: 'POST',
+          body,
+          authenticate: true,
+          headers: { 'idempotency-key': idempotencyKey },
+        },
+        (value) => customerOrderResponseSchema.parse(value).order,
+      );
+    },
+    listOrders(page = 1): Promise<CustomerOrderList> {
+      return request(withQuery('/orders', { page }), { authenticate: true }, (value) =>
+        customerOrderListSchema.parse(value),
+      );
+    },
+    getOrder(orderNumber: string): Promise<CustomerOrder> {
+      return request(
+        `/orders/${encodeURIComponent(orderNumber)}`,
+        { authenticate: true },
+        (value) => customerOrderResponseSchema.parse(value).order,
+      );
+    },
+    listAdminOrders(
+      query: Record<string, string | number | boolean | undefined>,
+    ): Promise<AdminOrderList> {
+      return request(withQuery('/admin/orders', query), { authenticate: true }, (value) =>
+        adminOrderListSchema.parse(value),
+      );
+    },
+    getAdminOrder(orderNumber: string): Promise<AdminOrderDetail> {
+      return request(
+        `/admin/orders/${encodeURIComponent(orderNumber)}`,
+        { authenticate: true },
+        (value) => adminOrderDetailSchema.parse(value),
+      );
+    },
+    updateOrderStatus(
+      orderNumber: string,
+      body: { status: string; note?: string },
+    ): Promise<AdminOrderDetail> {
+      return request(
+        `/admin/orders/${encodeURIComponent(orderNumber)}/status`,
+        { method: 'PATCH', body, authenticate: true },
+        (value) => adminOrderDetailSchema.parse(value),
+      );
+    },
+    dashboard(): Promise<Dashboard> {
+      return request('/admin/dashboard', { authenticate: true }, (value) =>
+        dashboardSchema.parse(value),
       );
     },
   };

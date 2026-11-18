@@ -3,14 +3,22 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   accessTokenResponseSchema,
+  addCartItemSchema,
   adminCategoryListSchema,
+  adminOrderDetailSchema,
+  adminOrderListSchema,
   adminProductListResponseSchema,
   adminProductResponseSchema,
   authSessionSchema,
+  cartSchema,
   categoryResponseSchema,
+  checkoutSchema,
   createCategoryBodySchema,
   createProductBodySchema,
   createSubcategoryBodySchema,
+  customerOrderListSchema,
+  customerOrderResponseSchema,
+  dashboardSchema,
   errorResponseSchema,
   healthResponseSchema,
   loginSchema,
@@ -21,7 +29,11 @@ import {
   serviceabilityResponseSchema,
   signupSchema,
   subcategoryResponseSchema,
+  sweepRequestSchema,
+  sweepResponseSchema,
+  updateCartItemSchema,
   updateCategoryBodySchema,
+  updateOrderStatusSchema,
   updateProductBodySchema,
   updateSubcategoryBodySchema,
 } from '@qc/shared';
@@ -48,10 +60,17 @@ const spec = {
     title: 'Quick Commerce API',
     version: '0.1.0',
     description:
-      'Auth, catalog, serviceability, health, and the shared error contract. Schemas are generated from packages/shared. Later milestones add cart and orders.',
+      'Auth, catalog, cart, checkout, orders, serviceability, health, and the shared error contract. Schemas are generated from packages/shared.',
   },
   servers: [{ url: '/' }],
-  tags: [{ name: 'Auth' }, { name: 'Catalog' }, { name: 'Serviceability' }, { name: 'System' }],
+  tags: [
+    { name: 'Auth' },
+    { name: 'Catalog' },
+    { name: 'Cart' },
+    { name: 'Orders' },
+    { name: 'Serviceability' },
+    { name: 'System' },
+  ],
   paths: {
     '/v1/auth/signup': {
       post: {
@@ -633,6 +652,332 @@ const spec = {
         },
       },
     },
+    '/v1/cart': {
+      get: {
+        operationId: 'getCart',
+        summary: 'Current customer cart with server-side totals',
+        tags: ['Cart'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Cart. Unavailable lines are flagged and excluded from the subtotal.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Cart' } } },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '403': errorResponse('FORBIDDEN'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+      delete: {
+        operationId: 'clearCart',
+        summary: 'Remove every line from the cart',
+        tags: ['Cart'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '204': { description: 'Cart cleared' },
+          '401': errorResponse('UNAUTHORIZED'),
+          '403': errorResponse('FORBIDDEN'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/cart/items': {
+      post: {
+        operationId: 'addCartItem',
+        summary: 'Add a product or merge it into an existing line',
+        tags: ['Cart'],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/AddCartItem' } } },
+        },
+        responses: {
+          '200': {
+            description: 'Updated cart',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Cart' } } },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '403': errorResponse('FORBIDDEN'),
+          '404': errorResponse('NOT_FOUND'),
+          '409': errorResponse('INSUFFICIENT_STOCK. details include available.'),
+          '422': errorResponse('VALIDATION'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/cart/items/{itemId}': {
+      patch: {
+        operationId: 'updateCartItem',
+        summary: 'Set a line quantity from 1 to 10',
+        tags: ['Cart'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: 'path',
+            name: 'itemId',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/UpdateCartItem' } },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Updated cart',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Cart' } } },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '403': errorResponse('FORBIDDEN'),
+          '404': errorResponse('NOT_FOUND when the line belongs to someone else'),
+          '409': errorResponse('INSUFFICIENT_STOCK'),
+          '422': errorResponse('VALIDATION'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+      delete: {
+        operationId: 'removeCartItem',
+        summary: 'Remove one cart line',
+        tags: ['Cart'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: 'path',
+            name: 'itemId',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Updated cart',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Cart' } } },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '404': errorResponse('NOT_FOUND'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/orders/checkout': {
+      post: {
+        operationId: 'checkout',
+        summary: 'Place an order and run the mock payment',
+        tags: ['Orders'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: 'header',
+            name: 'Idempotency-Key',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/CheckoutRequest' } },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Order confirmed. The same key and body returns this order again.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CustomerOrderResponse' },
+              },
+            },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '402': errorResponse('PAYMENT_FAILED. details[0].orderNumber is the failed attempt.'),
+          '409': errorResponse(
+            'INSUFFICIENT_STOCK or PRICE_CHANGED. PRICE_CHANGED details include the cart.',
+          ),
+          '422': errorResponse(
+            'CART_EMPTY, NOT_SERVICEABLE, IDEMPOTENCY_KEY_REUSED, or VALIDATION',
+          ),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/orders': {
+      get: {
+        operationId: 'listOrders',
+        summary: 'The signed-in customer’s orders, newest first',
+        tags: ['Orders'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'query', name: 'page', schema: { type: 'integer', minimum: 1, maximum: 20 } },
+          { in: 'query', name: 'pageSize', schema: { type: 'integer', minimum: 1, maximum: 50 } },
+        ],
+        responses: {
+          '200': {
+            description: 'Own orders only',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CustomerOrderList' } },
+            },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '422': errorResponse('VALIDATION'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/orders/{orderNumber}': {
+      get: {
+        operationId: 'getOrder',
+        summary: 'One order belonging to the signed-in customer',
+        tags: ['Orders'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'orderNumber', required: true, schema: { type: 'string' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Order with item snapshots, payment, and status history',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CustomerOrderResponse' },
+              },
+            },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '404': errorResponse('NOT_FOUND for a missing order or another customer’s order'),
+          '422': errorResponse('VALIDATION'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/admin/orders': {
+      get: {
+        operationId: 'listAdminOrders',
+        summary: 'All orders, with status, search, and date filters',
+        tags: ['Orders'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'query', name: 'status', schema: { type: 'string' } },
+          { in: 'query', name: 'q', schema: { type: 'string' } },
+          { in: 'query', name: 'from', schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'to', schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'page', schema: { type: 'integer' } },
+          { in: 'query', name: 'pageSize', schema: { type: 'integer' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Admin order list',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/AdminOrderList' } },
+            },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '403': errorResponse('FORBIDDEN'),
+          '422': errorResponse('VALIDATION'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/admin/orders/{orderNumber}': {
+      get: {
+        operationId: 'getAdminOrder',
+        summary: 'Any order, plus the statuses an admin may set next',
+        tags: ['Orders'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'orderNumber', required: true, schema: { type: 'string' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Order, customer, and allowedNextStatuses',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/AdminOrderDetail' } },
+            },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '403': errorResponse('FORBIDDEN'),
+          '404': errorResponse('NOT_FOUND'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/admin/orders/{orderNumber}/status': {
+      patch: {
+        operationId: 'updateOrderStatus',
+        summary: 'Move an order along an allowed admin transition',
+        tags: ['Orders'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'orderNumber', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/UpdateOrderStatus' } },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Updated order. Cancelling restocks and refunds the mock payment.',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/AdminOrderDetail' } },
+            },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '403': errorResponse('FORBIDDEN'),
+          '404': errorResponse('NOT_FOUND'),
+          '409': errorResponse('INVALID_TRANSITION'),
+          '422': errorResponse('VALIDATION'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/admin/dashboard': {
+      get: {
+        operationId: 'adminDashboard',
+        summary: 'Today’s orders, revenue, open orders, low stock, and recent orders',
+        tags: ['Orders'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'IST day totals. Revenue excludes failed, pending, and cancelled orders.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Dashboard' } } },
+          },
+          '401': errorResponse('UNAUTHORIZED'),
+          '403': errorResponse('FORBIDDEN'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
+    '/v1/internal/jobs/sweep': {
+      post: {
+        operationId: 'sweepPendingPayments',
+        summary: 'Fail pending-payment orders older than the window and restock them',
+        tags: ['System'],
+        security: [{ jobsToken: [] }],
+        parameters: [
+          { in: 'header', name: 'X-Jobs-Token', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          required: false,
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/SweepRequest' } },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'How many orders were swept and how many units were restocked',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/SweepResponse' } },
+            },
+          },
+          '401': errorResponse('UNAUTHORIZED without a valid X-Jobs-Token'),
+          '422': errorResponse('VALIDATION'),
+          '429': errorResponse('RATE_LIMITED'),
+        },
+      },
+    },
     '/v1/health': {
       get: {
         operationId: 'getHealth',
@@ -662,6 +1007,7 @@ const spec = {
   components: {
     securitySchemes: {
       bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      jobsToken: { type: 'apiKey', in: 'header', name: 'X-Jobs-Token' },
     },
     schemas: {
       SignupRequest: jsonSchema(signupSchema),
@@ -686,12 +1032,24 @@ const spec = {
       CreateProduct: jsonSchema(createProductBodySchema(['images.example.com'])),
       UpdateProduct: jsonSchema(updateProductBodySchema(['images.example.com'])),
       ServiceabilityResponse: jsonSchema(serviceabilityResponseSchema),
+      Cart: jsonSchema(cartSchema),
+      AddCartItem: jsonSchema(addCartItemSchema),
+      UpdateCartItem: jsonSchema(updateCartItemSchema),
+      CheckoutRequest: jsonSchema(checkoutSchema),
+      CustomerOrderResponse: jsonSchema(customerOrderResponseSchema),
+      CustomerOrderList: jsonSchema(customerOrderListSchema),
+      AdminOrderList: jsonSchema(adminOrderListSchema),
+      AdminOrderDetail: jsonSchema(adminOrderDetailSchema),
+      UpdateOrderStatus: jsonSchema(updateOrderStatusSchema),
+      Dashboard: jsonSchema(dashboardSchema),
+      SweepRequest: jsonSchema(sweepRequestSchema),
+      SweepResponse: jsonSchema(sweepResponseSchema),
     },
   },
 };
 
 const header = '# Generated from packages/shared Zod schemas. Do not edit by hand.\n';
-const text = `${header}${stringify(spec)}`;
+const text = `${header}${stringify(spec, { aliasDuplicateObjects: false })}`;
 const specPath = resolve(dirname(fileURLToPath(import.meta.url)), '../openapi/openapi.yaml');
 const check = process.argv.includes('--check');
 
