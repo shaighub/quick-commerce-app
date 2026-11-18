@@ -1,3 +1,22 @@
+export {
+  accessTokenResponseSchema,
+  authSessionSchema,
+  deliveryAddressSchema,
+  loginSchema,
+  meResponseSchema,
+  publicUserSchema,
+  signupSchema,
+} from './auth.js';
+export type {
+  AccessTokenResponse,
+  AuthSession,
+  DeliveryAddress,
+  LoginInput,
+  MeResponse,
+  MeUser,
+  PublicUser,
+  SignupInput,
+} from './auth.js';
 export { ErrorCodes, errorResponseSchema } from './errors.js';
 export type { ErrorCode, ErrorResponse } from './errors.js';
 export { orderStatusSchema, paymentStatusSchema, roleSchema } from './enums.js';

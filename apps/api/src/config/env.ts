@@ -25,6 +25,10 @@ const envSchema = z.object({
   RATE_LIMIT_AUTH_MAX: z.coerce.number().int().positive().default(10),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
+  /** Access JWT lifetime. 900 seconds is the 15-minute design default. */
+  JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  /** Refresh cookie lifetime. 604800 seconds is the 7-day design default. */
+  JWT_REFRESH_TTL_SECONDS: z.coerce.number().int().positive().default(604_800),
 });
 
 export interface AppConfig {
@@ -44,6 +48,8 @@ export interface AppConfig {
   rateLimitAuthMax: number;
   rateLimitWindowMs: number;
   shutdownTimeoutMs: number;
+  accessTokenTtlSeconds: number;
+  refreshTokenTtlSeconds: number;
 }
 
 function readEnvFile(path: string): Record<string, string> {
@@ -113,6 +119,8 @@ export function parseConfig(source: NodeJS.ProcessEnv): AppConfig {
     rateLimitAuthMax: env.RATE_LIMIT_AUTH_MAX,
     rateLimitWindowMs: env.RATE_LIMIT_WINDOW_MS,
     shutdownTimeoutMs: env.SHUTDOWN_TIMEOUT_MS,
+    accessTokenTtlSeconds: env.JWT_ACCESS_TTL_SECONDS,
+    refreshTokenTtlSeconds: env.JWT_REFRESH_TTL_SECONDS,
   };
 }
 

@@ -1,7 +1,9 @@
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
+import { createSecurity, type Security } from './auth/create-security.js';
 import type { AppConfig } from './config/env.js';
+import type { PrismaClient } from './generated/prisma/client.js';
 import type { AppLogger } from './lib/logger.js';
 import { getRequestId, requestIdMiddleware } from './lib/request-id.js';
 import { createErrorHandler, notFoundHandler } from './middleware/error-handler.js';
@@ -12,6 +14,9 @@ export interface AppDeps {
   config: AppConfig;
   logger: AppLogger;
   checkDb: () => Promise<boolean>;
+  prisma: PrismaClient;
+  now?: () => Date;
+  security?: Security;
 }
 
 export function createApp(deps: AppDeps): Express {
@@ -49,7 +54,15 @@ export function createApp(deps: AppDeps): Express {
     createRateLimiter(deps.config.rateLimitAuthMax, deps.config.rateLimitWindowMs),
   );
   app.use('/v1', createRateLimiter(deps.config.rateLimitPublicMax, deps.config.rateLimitWindowMs));
-  app.use('/v1', createV1Router({ config: deps.config, checkDb: deps.checkDb }));
+  const security =
+    deps.security ??
+    createSecurity({
+      prisma: deps.prisma,
+      config: deps.config,
+      logger: deps.logger,
+      ...(deps.now ? { now: deps.now } : {}),
+    });
+  app.use('/v1', createV1Router({ config: deps.config, checkDb: deps.checkDb, security }));
   app.use(notFoundHandler);
   app.use(createErrorHandler(deps.logger));
 

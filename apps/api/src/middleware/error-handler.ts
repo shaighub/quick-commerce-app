@@ -38,6 +38,11 @@ export function createErrorHandler(logger: AppLogger) {
     const requestId = getRequestId(req);
 
     if (error instanceof AppError) {
+      if (error.headers) {
+        for (const [name, value] of Object.entries(error.headers)) {
+          res.setHeader(name, value);
+        }
+      }
       const body =
         error.details === undefined
           ? errorBody(error.code, error.message, requestId)

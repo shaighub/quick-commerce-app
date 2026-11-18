@@ -29,6 +29,7 @@ const database = createDatabase(config.databaseUrl, logger);
 const app = createApp({
   config,
   logger,
+  prisma: database.prisma,
   checkDb: () => checkDatabase(database.prisma, logger),
 });
 
@@ -92,6 +93,7 @@ describe('HTTP skeleton', () => {
     const down = createApp({
       config,
       logger,
+      prisma: database.prisma,
       checkDb: () => Promise.resolve(false),
     });
     const downResponse = await request(down).get('/v1/health');
@@ -101,6 +103,7 @@ describe('HTTP skeleton', () => {
     const exploding = createApp({
       config,
       logger,
+      prisma: database.prisma,
       checkDb: () => Promise.reject(new Error('connection reset')),
     });
     const errorResponse = await request(exploding).get('/v1/health');
@@ -113,6 +116,7 @@ describe('HTTP skeleton', () => {
     const limited = createApp({
       config: testConfig({ rateLimitPublicMax: 2, rateLimitAuthMax: 2 }),
       logger,
+      prisma: database.prisma,
       checkDb: () => Promise.resolve(true),
     });
     expect((await request(limited).get('/v1/health')).status).toBe(200);
@@ -125,10 +129,11 @@ describe('HTTP skeleton', () => {
     const authLimited = createApp({
       config: testConfig({ rateLimitPublicMax: 100, rateLimitAuthMax: 2 }),
       logger,
+      prisma: database.prisma,
       checkDb: () => Promise.resolve(true),
     });
-    expect((await request(authLimited).post('/v1/auth/login')).status).toBe(404);
-    expect((await request(authLimited).post('/v1/auth/login')).status).toBe(404);
+    expect((await request(authLimited).post('/v1/auth/login')).status).toBe(422);
+    expect((await request(authLimited).post('/v1/auth/login')).status).toBe(422);
     const authBlocked = await request(authLimited).post('/v1/auth/login');
     expect(authBlocked.status).toBe(429);
   });
@@ -141,6 +146,7 @@ describe('HTTP skeleton', () => {
     const hidden = createApp({
       config: testConfig({ docsEnabled: false }),
       logger,
+      prisma: database.prisma,
       checkDb: () => Promise.resolve(true),
     });
     const missing = await request(hidden).get('/v1/docs/');
@@ -153,6 +159,7 @@ describe('HTTP skeleton', () => {
     const logged = createApp({
       config,
       logger: collected.logger,
+      prisma: database.prisma,
       checkDb: () => Promise.resolve(true),
     });
     await request(logged).get('/v1/health').set('x-request-id', 'log_line_1');

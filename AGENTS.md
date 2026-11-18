@@ -18,7 +18,7 @@ The browser calls `/v1` on the web origin. Vite proxies that path locally. `apps
 
 ## Milestone boundary
 
-Milestone 1 is the foundation only: tooling, the full database, the API skeleton (`GET /v1/health`, docs, errors), and placeholder screens. Do not add auth, catalog, cart, or order behavior until that milestone. The seed may insert an admin and sample products because the schema milestone requires it.
+Milestone 1 is the foundation: tooling, the full database, the API skeleton (`GET /v1/health`, docs, errors), and placeholder screens. Milestone 2 adds auth (sign-up, login, refresh, logout, lockout, and route guards). Do not add catalog, cart, or order behavior until those milestones. The seed may insert an admin and sample products. Sign-up must not create an admin.
 
 ## Data
 

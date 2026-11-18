@@ -22,26 +22,6 @@ export function ProductDetailPage() {
   );
 }
 
-export function SignUpPage() {
-  return (
-    <Placeholder
-      id="S03"
-      title="Sign up"
-      summary="Customer registration arrives in a later milestone."
-    />
-  );
-}
-
-export function LoginPage() {
-  return (
-    <Placeholder
-      id="S04"
-      title="Log in"
-      summary="Email and password sign-in arrives in a later milestone."
-    />
-  );
-}
-
 export function CartPage() {
   return (
     <Placeholder

@@ -12,6 +12,7 @@ const database = createDatabase(config.databaseUrl, logger);
 const app = createApp({
   config,
   logger,
+  prisma: database.prisma,
   checkDb: () => checkDatabase(database.prisma, logger),
 });
 

@@ -1,9 +1,7 @@
-import bcrypt from 'bcrypt';
 import { passwordSchema } from '@qc/shared';
 import { z } from 'zod';
 import type { PrismaClient } from '../generated/prisma/client.js';
-
-export const BCRYPT_COST = 12;
+import { createPasswordService } from '../services/password.service.js';
 
 const WEAK_PASSWORDS = new Set([
   'password',
@@ -204,7 +202,7 @@ const products: ProductSeed[] = [
 
 export async function seedDatabase(prisma: PrismaClient, input: SeedInput): Promise<void> {
   const admin = assertAdminSeedInput(input);
-  const passwordHash = await bcrypt.hash(admin.password, BCRYPT_COST);
+  const passwordHash = await createPasswordService().hash(admin.password);
 
   await prisma.user.upsert({
     where: { email: admin.email },

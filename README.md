@@ -1,6 +1,6 @@
 # Quick Commerce
 
-A single-store quick-commerce app: customers browse and order, an admin manages the catalog and order status, and guests can only browse. This repository is the milestone 1 foundation. Auth, catalog, cart, and checkout behavior are later milestones. The approved design is [`docs/design.md`](docs/design.md).
+A single-store quick-commerce app: customers browse and order, an admin manages the catalog and order status, and guests can only browse. Milestone 1 is the foundation. Milestone 2 adds customer sign-up, login, refresh-token rotation, and route guards. Catalog, cart, and checkout behavior are later milestones. The approved design is [`docs/design.md`](docs/design.md).
 
 ## Architecture
 
@@ -48,7 +48,17 @@ npm run db:seed
 
 `node scripts/create-databases.mjs` creates the shadow and test databases when `quick_commerce` already exists.
 
-The seed refuses an empty or weak `ADMIN_PASSWORD`. It upserts one admin (`ADMIN_EMAIL`) and sample categories, subcategories, and products. Running it again does not duplicate them.
+The seed refuses an empty or weak `ADMIN_PASSWORD`. It upserts one admin (`ADMIN_EMAIL`) and sample categories, subcategories, and products. Running it again does not duplicate them. Sign-up cannot create an admin; `POST /v1/auth/signup` always stores `CUSTOMER`.
+
+## Auth
+
+Passwords are hashed with bcrypt cost 12. Login returns a 15-minute JWT access token in the JSON body. The web app keeps that token in memory only. A 7-day refresh token is stored as a SHA-256 hash and sent to the browser as cookie `qc_rt` (`HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/v1/auth`).
+
+`POST /v1/auth/refresh` and `POST /v1/auth/logout` require the `X-Requested-With` header. Refresh rotates the cookie. Presenting a rotated token again revokes that token's whole family. `POST /v1/auth/logout-all` increments `users.token_version`, revokes every refresh token, and clears the cookie. Authenticated requests compare the JWT `ver` claim with `token_version` (cached for 30 seconds, and dropped in the process that bumped it).
+
+Five failed logins lock the account for 15 minutes (`423 ACCOUNT_LOCKED`). Unknown emails get the same responses from an in-memory counter, so a failure does not reveal whether the address exists. Auth routes allow 10 requests per minute per IP.
+
+The browser calls `/v1` on the web origin, including the silent refresh on load. Vite proxies that path locally. See ADR-003, ADR-004, and ADR-013.
 
 ## Run
 
@@ -87,21 +97,23 @@ Playwright is configured in `apps/web` and is not run in CI yet. Specs arrive wi
 
 Copy `.env.example`. The API also reads `apps/api/.env`, which overrides the root file. Process environment wins over both.
 
-| Variable                         | Purpose                                                                         |
-| -------------------------------- | ------------------------------------------------------------------------------- |
-| `DATABASE_URL`                   | PostgreSQL connection. Include `connection_limit=5` for the app pool.           |
-| `SHADOW_DATABASE_URL`            | Empty database used by the migration drift check.                               |
-| `TEST_DATABASE_URL`              | Database used by Vitest.                                                        |
-| `JWT_SECRET`                     | At least 32 characters. Required at startup. Auth uses it in a later milestone. |
-| `JOBS_TOKEN`                     | At least 16 characters. Protects the future sweep endpoint.                     |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Seed only. Password must be 8+ characters with a letter and a number.           |
-| `DELIVERY_FEE_PAISE`             | Flat delivery fee in paise.                                                     |
-| `SERVICEABLE_PINCODES`           | Comma-separated 6-digit pincodes.                                               |
-| `IMAGE_HOSTS`                    | Hostnames allowed in image URLs and in `img-src`.                               |
-| `DOCS_ENABLED`                   | `true` or `false`. Defaults on outside production.                              |
-| `SENTRY_DSN`                     | Optional. Parsed now, wired to error tracking later.                            |
-| `VITE_API_BASE_URL`              | Browser base path. Keep `/v1`.                                                  |
-| `VITE_API_PROXY_TARGET`          | Where Vite proxies `/v1` during local dev.                                      |
+| Variable                         | Purpose                                                                                       |
+| -------------------------------- | --------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                   | PostgreSQL connection. Include `connection_limit=5` for the app pool.                         |
+| `SHADOW_DATABASE_URL`            | Empty database used by the migration drift check.                                             |
+| `TEST_DATABASE_URL`              | Database used by Vitest.                                                                      |
+| `JWT_SECRET`                     | At least 32 characters. Signs access tokens (HS256). Generate a unique value per environment. |
+| `JWT_ACCESS_TTL_SECONDS`         | Access token lifetime. Default `900` (15 minutes).                                            |
+| `JWT_REFRESH_TTL_SECONDS`        | Refresh token lifetime. Default `604800` (7 days).                                            |
+| `JOBS_TOKEN`                     | At least 16 characters. Protects the future sweep endpoint.                                   |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Seed only. Password must be 8+ characters with a letter and a number.                         |
+| `DELIVERY_FEE_PAISE`             | Flat delivery fee in paise.                                                                   |
+| `SERVICEABLE_PINCODES`           | Comma-separated 6-digit pincodes.                                                             |
+| `IMAGE_HOSTS`                    | Hostnames allowed in image URLs and in `img-src`.                                             |
+| `DOCS_ENABLED`                   | `true` or `false`. Defaults on outside production.                                            |
+| `SENTRY_DSN`                     | Optional. Parsed now, wired to error tracking later.                                          |
+| `VITE_API_BASE_URL`              | Browser base path. Keep `/v1`.                                                                |
+| `VITE_API_PROXY_TARGET`          | Where Vite proxies `/v1` during local dev.                                                    |
 
 `apps/web/vercel.json` points `/v1` at `https://quick-commerce-api.onrender.com`. Change that host when the Render service exists. Do not put production secrets in the repo.
 
@@ -115,7 +127,10 @@ Not part of this milestone. The intended path, after a deployment checkpoint:
 
 ## Troubleshooting
 
-- **API exits on startup.** The message lists the invalid variable. `JWT_SECRET` and `JOBS_TOKEN` are required even before those features exist.
+- **API exits on startup.** The message lists the invalid variable. `JWT_SECRET` must be at least 32 characters and `JOBS_TOKEN` at least 16.
+- **Login says the email or password is incorrect.** That message is the same for an unknown email, a wrong password, and a deactivated account.
+- **Login returns 423.** The account is locked for 15 minutes after five failures. The `Retry-After` header and `error.details[0].retryAfter` are seconds.
+- **The session disappears on reload in local HTTP.** The refresh cookie is `Secure`. Browsers still store it on `http://localhost`. A non-localhost HTTP origin will not.
 - **Seed says the password is weak.** Use 8+ characters with a letter and a number. `password1` and `change-me` are rejected.
 - **`prisma generate` cannot find the client.** Run `npm run db:generate`. The client is generated into `apps/api/src/generated` and is not committed.
 - **Drift check fails.** Apply migrations to `DATABASE_URL` first. `SHADOW_DATABASE_URL` must be a database the Prisma user can reset.

@@ -13,7 +13,12 @@ export function createLogger(
     {
       level: config.logLevel,
       base: { service: 'api' },
-      redact: ['req.headers.authorization', 'req.headers.cookie'],
+      redact: [
+        'req.headers.authorization',
+        'req.headers.cookie',
+        'req.body.password',
+        'res.headers["set-cookie"]',
+      ],
     },
     destination,
   );

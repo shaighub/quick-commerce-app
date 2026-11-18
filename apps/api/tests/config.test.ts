@@ -20,6 +20,8 @@ describe('config', () => {
     expect(config.rateLimitAuthMax).toBe(10);
     expect(config.rateLimitPublicMax).toBe(100);
     expect(config.shutdownTimeoutMs).toBe(10_000);
+    expect(config.accessTokenTtlSeconds).toBe(900);
+    expect(config.refreshTokenTtlSeconds).toBe(604_800);
   });
 
   it('turns docs off in production unless enabled', () => {
