@@ -1,0 +1,17 @@
+---
+description: Quick Commerce architecture and milestone boundaries
+alwaysApply: true
+---
+
+# Architecture
+
+Follow `docs/design.md` and `AGENTS.md`.
+
+- Monorepo: `apps/api`, `apps/web`, `packages/shared`.
+- API layering is routes → controllers → services → repositories. Controllers parse the request, call one service, and send the result. They do not contain business rules.
+- React components render and forward events. They do not calculate prices, stock, or order status.
+- Shared Zod schemas are the contract. Generate OpenAPI from them. Do not hand-maintain a second copy of a schema.
+- Money is integer paise. Timestamps are `timestamptz` in UTC. The order-number day is Asia/Kolkata.
+- Errors: `{ error: { code, message, details?, requestId } }`.
+- The browser uses same-origin `/v1`. Do not enable CORS.
+- Do not implement a later milestone's behavior while finishing an earlier one.

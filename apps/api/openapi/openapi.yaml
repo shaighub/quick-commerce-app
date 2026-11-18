@@ -1,0 +1,78 @@
+# Generated from packages/shared Zod schemas. Do not edit by hand.
+openapi: 3.1.0
+info:
+  title: Quick Commerce API
+  version: 0.1.0
+  description: Milestone 1 exposes the health check and the shared error contract.
+    Later milestones add paths from the Zod schemas in packages/shared.
+servers:
+  - url: /
+paths:
+  /v1/health:
+    get:
+      operationId: getHealth
+      summary: Health check
+      tags:
+        - System
+      responses:
+        "200":
+          description: Database is reachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: Database is not reachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - unavailable
+        db:
+          type: string
+          enum:
+            - up
+            - down
+        version:
+          type: string
+          minLength: 1
+      required:
+        - status
+        - db
+        - version
+      additionalProperties: false
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              minLength: 1
+            message:
+              type: string
+              minLength: 1
+            details:
+              type: array
+              items: {}
+            requestId:
+              type: string
+              minLength: 1
+          required:
+            - code
+            - message
+            - requestId
+          additionalProperties: false
+      required:
+        - error
+      additionalProperties: false

@@ -1,0 +1,15 @@
+---
+description: API layering, validation, and the database
+globs: apps/api/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# API
+
+- Add a route under `src/routes`, a thin controller under `src/controllers`, and the rule in `src/services`. Data access goes through a repository or a focused Prisma call inside the service, not the controller.
+- Validate with Zod from `@qc/shared` before the service runs. Unknown fields are stripped. Failures are 422 `VALIDATION`.
+- Domain failures throw `AppError` with a stable `code`.
+- Public routes are limited to 100 requests per minute per IP. `/v1/auth` is limited to 10. Keep the JSON error body and `Retry-After`.
+- `GET /v1/health` returns `{ status, db, version }` and 503 when the database is down.
+- Partial indexes, trigram search, and CHECK constraints are in the SQL migration. Extend that migration style; do not recreate them as full unique indexes in `schema.prisma`.
+- Password hashes are bcrypt cost 12. Never return `passwordHash`.

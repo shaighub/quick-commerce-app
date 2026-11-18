@@ -1,0 +1,15 @@
+title = "Quick Commerce gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Local development placeholders. These are not production secrets."
+paths = [
+  '''(^|/)\.env\.example$''',
+  '''(^|/)docker-compose\.yml$''',
+]
+regexes = [
+  '''local-dev-only-jwt-secret-32chars-min''',
+  '''local-dev-only-jobs-token''',
+]

@@ -1,0 +1,14 @@
+---
+description: Web UI, accessibility, and the API client
+globs: apps/web/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Web
+
+- Keep the skip link, `header`, `nav`, `main#main`, and `footer`.
+- One `h1` per screen. Label every form control. Do not use a `div` as a button.
+- Call the API through `src/api/client.ts`, which sends `x-request-id` and maps the error envelope.
+- Catalog queries use TanStack Query with `staleTime` of 60 seconds.
+- Placeholder routes for S01–S09 and A01–A05 live in `src/routes.tsx`. Replace a placeholder in the milestone that builds that screen; do not remove the route.
+- Format money only in the UI, from integer paise.
