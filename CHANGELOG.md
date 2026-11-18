@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 - 2026-11-18
+
+### Added
+
+- Customer sign-up and login with bcrypt cost 12, a 15-minute JWT access token, and a hashed rotating refresh cookie.
+- Refresh reuse detection, logout, logout-all via `token_version`, and a 15-minute login lockout.
+- `requireAuth` and `requireRole` middleware, `GET /v1/auth/me`, and the auth paths in the OpenAPI document.
+- Sign-up and log-in screens, an in-memory auth session, silent refresh, and customer and admin route guards.
+
 ## 0.1.0 - 2026-11-17
 
 ### Added

@@ -1,18 +1,28 @@
 import type { NextFunction, Request, Response } from 'express';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
+import { AppError } from '../src/lib/errors.js';
 import { createErrorHandler } from '../src/middleware/error-handler.js';
 import { setRequestId } from '../src/lib/request-id.js';
 import { silentLogger } from './helpers.js';
 
-function invoke(error: unknown): { status: number; body: unknown } {
+function invoke(error: unknown): {
+  status: number;
+  body: unknown;
+  headers: Record<string, string>;
+} {
   const handler = createErrorHandler(silentLogger());
   const req = { method: 'POST', path: '/v1/example' } as unknown as Request;
   setRequestId(req, 'req-unit');
   let status = 0;
   let body: unknown;
+  const headers: Record<string, string> = {};
   const res = {
     headersSent: false,
+    setHeader(name: string, value: string) {
+      headers[name] = value;
+      return this;
+    },
     status(code: number) {
       status = code;
       return this;
@@ -23,7 +33,7 @@ function invoke(error: unknown): { status: number; body: unknown } {
     },
   } as unknown as Response;
   handler(error, req, res, (() => undefined) as NextFunction);
-  return { status, body };
+  return { status, body, headers };
 }
 
 describe('error handler', () => {
@@ -40,6 +50,25 @@ describe('error handler', () => {
         message: 'Request validation failed',
         requestId: 'req-unit',
       },
+    });
+  });
+
+  it('copies AppError headers such as Retry-After', () => {
+    const result = invoke(
+      new AppError(
+        423,
+        'ACCOUNT_LOCKED',
+        'Too many failed attempts. Try again later.',
+        [{ retryAfter: 90 }],
+        {
+          'Retry-After': '90',
+        },
+      ),
+    );
+    expect(result.status).toBe(423);
+    expect(result.headers['Retry-After']).toBe('90');
+    expect(result.body).toMatchObject({
+      error: { code: 'ACCOUNT_LOCKED', details: [{ retryAfter: 90 }] },
     });
   });
 
