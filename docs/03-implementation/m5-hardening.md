@@ -5,7 +5,7 @@
 |              |                                         |
 | ------------ | --------------------------------------- |
 | Branch       | `feature/m5-hardening`                  |
-| Pull request | Opened against `main` from this branch. |
+| Pull request | https://github.com/shaighub/quick-commerce-app/pull/6 |
 
 ## Planned scope
 

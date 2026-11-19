@@ -29,7 +29,7 @@ Checkpoint 3 approved Milestones 1, 2, 3, and 4. Milestone 4 merged as [PR #5](h
 | M2 Auth            | Done      | [PR #3](https://github.com/shaighub/quick-commerce-app/pull/3) ([notes](03-implementation/m2-auth.md))        |
 | M3 Catalog         | Done      | [PR #4](https://github.com/shaighub/quick-commerce-app/pull/4) ([notes](03-implementation/m3-catalog.md))     |
 | M4 Cart and orders | Done      | [PR #5](https://github.com/shaighub/quick-commerce-app/pull/5) ([notes](03-implementation/m4-cart-orders.md)) |
-| M5 Hardening       | In review | This branch ([notes](03-implementation/m5-hardening.md))                                                      |
+| M5 Hardening       | In review | [PR #6](https://github.com/shaighub/quick-commerce-app/pull/6) ([notes](03-implementation/m5-hardening.md))   |
 
 ## Contents
 

@@ -10,7 +10,7 @@ Milestones 1 through 4 are done and merged. Milestone 5 is in review on `feature
 | M2 Auth            | Done      | [m2-auth.md](m2-auth.md)               | [PR #3](https://github.com/shaighub/quick-commerce-app/pull/3) |
 | M3 Catalog         | Done      | [m3-catalog.md](m3-catalog.md)         | [PR #4](https://github.com/shaighub/quick-commerce-app/pull/4) |
 | M4 Cart and orders | Done      | [m4-cart-orders.md](m4-cart-orders.md) | [PR #5](https://github.com/shaighub/quick-commerce-app/pull/5) |
-| M5 Hardening       | In review | [m5-hardening.md](m5-hardening.md)     | `feature/m5-hardening`                                         |
+| M5 Hardening       | In review | [m5-hardening.md](m5-hardening.md)     | [PR #6](https://github.com/shaighub/quick-commerce-app/pull/6) |
 
 The approved design is [docs/design.md](../design.md). These notes group that design by milestone. The design file is unchanged.
 
