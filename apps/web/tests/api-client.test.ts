@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ApiError, createApiClient } from '../src/api/client.js';
+import { createErrorReporter, setErrorReporter } from '../src/lib/error-reporting.js';
 
 describe('api client', () => {
   it('parses a health response and sends a request id', async () => {
@@ -112,6 +113,39 @@ describe('api client', () => {
     const headers = new Headers(fetchImpl.mock.calls[0]?.[1]?.headers);
     expect(headers.get('x-requested-with')).toBe('XMLHttpRequest');
     await expect(client.refreshSession()).resolves.toBeNull();
+  });
+
+  it('reports a 500 with the response request id', async () => {
+    const captured: Array<{ message: string; requestId: string }> = [];
+    setErrorReporter({
+      capture(error, requestId) {
+        captured.push({
+          message: error instanceof Error ? error.message : '',
+          requestId,
+        });
+      },
+    });
+    try {
+      const fetchImpl = vi.fn<typeof fetch>(() =>
+        Promise.resolve(
+          Response.json(
+            {
+              error: {
+                code: 'INTERNAL_ERROR',
+                message: 'Something went wrong',
+                requestId: 'req-500',
+              },
+            },
+            { status: 500 },
+          ),
+        ),
+      );
+      const client = createApiClient({ baseUrl: '/v1', fetchImpl, requestId: () => 'req-web' });
+      await expect(client.getHealth()).rejects.toMatchObject({ status: 500, requestId: 'req-500' });
+      expect(captured).toEqual([{ message: 'Something went wrong', requestId: 'req-500' }]);
+    } finally {
+      setErrorReporter(createErrorReporter({ dsn: undefined }));
+    }
   });
 
   it('uses a generic error when the body is not the error envelope', async () => {

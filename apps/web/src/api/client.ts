@@ -40,6 +40,7 @@ import {
   type ServiceabilityResponse,
   type SignupInput,
 } from '@qc/shared';
+import { noteRequestId, reportApiFailure } from '../lib/error-reporting.js';
 
 export class ApiError extends Error {
   readonly status: number;
@@ -111,6 +112,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
     parse: (value: unknown) => T,
   ): Promise<T> {
     const id = requestId();
+    noteRequestId(id);
     const headers = new Headers();
     headers.set('accept', 'application/json');
     headers.set('x-request-id', id);
@@ -159,6 +161,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
     if (!response.ok) {
       const parsed = errorResponseSchema.safeParse(payload);
       if (parsed.success) {
+        reportApiFailure(response.status, parsed.data.error.requestId, parsed.data.error.message);
         throw new ApiError(
           response.status,
           parsed.data.error.code,
@@ -167,6 +170,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
           parsed.data.error.details,
         );
       }
+      reportApiFailure(response.status, id, response.statusText || 'Request failed');
       throw new ApiError(
         response.status,
         'INTERNAL_ERROR',
