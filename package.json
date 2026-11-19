@@ -28,26 +28,34 @@
     "db:seed": "npm run db:seed -w @qc/api",
     "db:drift": "npm run db:drift -w @qc/api",
     "openapi:check": "npm run openapi:check -w @qc/api",
+    "test:e2e": "npm run test:e2e -w @qc/web",
+    "test:load": "node scripts/load-test.mjs",
+    "test:lighthouse": "node scripts/lighthouse.mjs",
+    "test:bundle": "node scripts/bundle-size.mjs",
+    "lint:security": "eslint -c eslint.security.config.js .",
     "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@eslint/js": "^9.28.0",
+    "@vitest/coverage-v8": "^5.1.0",
+    "autocannon": "^8.0.0",
     "concurrently": "^9.2.0",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-security": "^3.0.1",
     "globals": "^16.2.0",
     "husky": "^9.1.7",
+    "lighthouse": "^13.6.0",
     "lint-staged": "^16.1.2",
-    "@vitest/coverage-v8": "^5.1.0",
     "prettier": "^3.5.3",
-    "vitest": "^5.1.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1"
+    "typescript-eslint": "^8.33.1",
+    "vitest": "^5.1.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,cjs}": [

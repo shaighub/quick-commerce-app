@@ -721,6 +721,8 @@ describe('orders and admin', () => {
     const own = await request(app).get(`/v1/orders/${order.orderNumber}`).set(bearer(owner.token));
     expect(own.status).toBe(200);
 
+    const dayKey = istDayKey(new Date());
+    const today = `${dayKey.slice(0, 4)}-${dayKey.slice(4, 6)}-${dayKey.slice(6, 8)}`;
     const listed = adminOrderListSchema.parse(
       (
         await request(app)
@@ -728,8 +730,8 @@ describe('orders and admin', () => {
           .query({
             q: order.orderNumber,
             status: 'CONFIRMED',
-            from: '2026-11-18',
-            to: '2026-11-18',
+            from: today,
+            to: today,
           })
           .set(bearer(adminToken))
       ).body,

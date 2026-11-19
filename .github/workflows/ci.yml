@@ -85,6 +85,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Bundle size
+        run: node scripts/bundle-size.mjs
+
+      - name: Security lint
+        run: npm run lint:security
+
       - name: Dependency audit
         run: node scripts/audit-deps.mjs
 
@@ -92,3 +98,152 @@ jobs:
         run: |
           curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_x64.tar.gz | tar -xz
           ./gitleaks detect --source . --redact --no-banner --exit-code 1
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: qc
+          POSTGRES_PASSWORD: qc
+          POSTGRES_DB: quick_commerce
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qc -d quick_commerce"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      HUSKY: '0'
+      DATABASE_URL: postgresql://qc:qc@localhost:5432/quick_commerce?schema=public&connection_limit=5&pool_timeout=10
+      JWT_SECRET: local-dev-only-jwt-secret-32chars-min
+      JOBS_TOKEN: test-jobs-token-value
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: Adminpass1
+      DELIVERY_FEE_PAISE: '2500'
+      SERVICEABLE_PINCODES: 560001,560002
+      IMAGE_HOSTS: images.example.com
+      RATE_LIMIT_AUTH_MAX: '1000'
+      RATE_LIMIT_PUBLIC_MAX: '10000'
+      NODE_ENV: development
+      LOG_LEVEL: silent
+      CI: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Install Playwright
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright
+        run: npm run test:e2e
+
+      - name: Upload traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: |
+            apps/web/test-results
+            apps/web/playwright-report
+          if-no-files-found: ignore
+
+  perf:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: qc
+          POSTGRES_PASSWORD: qc
+          POSTGRES_DB: quick_commerce
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qc -d quick_commerce"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      HUSKY: '0'
+      DATABASE_URL: postgresql://qc:qc@localhost:5432/quick_commerce?schema=public&connection_limit=5&pool_timeout=10
+      JWT_SECRET: local-dev-only-jwt-secret-32chars-min
+      JOBS_TOKEN: test-jobs-token-value
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: Adminpass1
+      DELIVERY_FEE_PAISE: '2500'
+      SERVICEABLE_PINCODES: 560001,560002
+      IMAGE_HOSTS: images.example.com
+      RATE_LIMIT_AUTH_MAX: '10000'
+      RATE_LIMIT_PUBLIC_MAX: '10000'
+      NODE_ENV: development
+      LOG_LEVEL: silent
+      VITE_API_PROXY_TARGET: http://127.0.0.1:4000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Build shared and API
+        run: npm run build -w @qc/shared && npm run build -w @qc/api
+
+      - name: Migrate and seed
+        run: npm run db:migrate && npm run db:seed
+
+      - name: Build web
+        run: npm run build -w @qc/web
+
+      - name: Install Chrome
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Lighthouse and load test
+        run: |
+          npm run start -w @qc/api &
+          npm run preview -w @qc/web -- --host 127.0.0.1 --port 4173 &
+          for _ in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:4000/v1/health >/dev/null && curl -sf http://127.0.0.1:4173/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:4000/v1/health
+          curl -sf http://127.0.0.1:4173/ >/dev/null
+          node scripts/lighthouse.mjs
+          node scripts/load-test.mjs
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: |
+            docs/04-testing/lighthouse-results.json
+            docs/04-testing/load-results.json
+          if-no-files-found: ignore
