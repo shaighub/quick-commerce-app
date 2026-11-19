@@ -1,0 +1,39 @@
+{
+  "ranAt": "2026-11-19T17:10:33.970Z",
+  "productCount": 10006,
+  "plans": {
+    "listing": "Limit  (cost=896.04..896.05 rows=2 width=24)\n  ->  Sort  (cost=896.04..896.05 rows=2 width=24)\n        Sort Key: p.created_at DESC, p.id\n        ->  Nested Loop  (cost=27.21..896.03 rows=2 width=24)\n              ->  Nested Loop  (cost=0.28..16.32 rows=1 width=16)\n                    Join Filter: (c.id = s.category_id)\n                    ->  Index Scan using subcategories_cat_slug_live_key on subcategories s  (cost=0.14..8.15 rows=1 width=32)\n                          Filter: is_active\n                    ->  Index Scan using categories_name_live_key on categories c  (cost=0.14..8.15 rows=1 width=16)\n                          Filter: is_active\n              ->  Bitmap Heap Scan on products p  (cost=26.93..865.42 rows=1429 width=40)\n                    Recheck Cond: ((s.id = subcategory_id) AND is_active AND (deleted_at IS NULL))\n                    ->  Bitmap Index Scan on products_subcat_active_idx  (cost=0.00..26.57 rows=1429 width=0)\n                          Index Cond: ((subcategory_id = s.id) AND (is_active = true))",
+    "search": "Limit  (cost=899.60..899.61 rows=2 width=20)\n  ->  Sort  (cost=899.60..899.61 rows=2 width=20)\n        Sort Key: (ts_rank(p.search_vector, '''load'' & ''milk'''::tsquery)) DESC, p.id\n        ->  Nested Loop  (cost=27.21..899.59 rows=2 width=20)\n              ->  Nested Loop  (cost=0.28..16.32 rows=1 width=16)\n                    Join Filter: (c.id = s.category_id)\n                    ->  Index Scan using subcategories_cat_slug_live_key on subcategories s  (cost=0.14..8.15 rows=1 width=32)\n                          Filter: is_active\n                    ->  Index Scan using categories_name_live_key on categories c  (cost=0.14..8.15 rows=1 width=16)\n                          Filter: is_active\n              ->  Bitmap Heap Scan on products p  (cost=26.93..869.00 rows=1427 width=169)\n                    Recheck Cond: ((s.id = subcategory_id) AND is_active AND (deleted_at IS NULL))\n                    Filter: (search_vector @@ '''load'' & ''milk'''::tsquery)\n                    ->  Bitmap Index Scan on products_subcat_active_idx  (cost=0.00..26.57 rows=1429 width=0)\n                          Index Cond: ((subcategory_id = s.id) AND (is_active = true))"
+  },
+  "http": {
+    "listing": {
+      "requests": 21152,
+      "non2xx": 0,
+      "latencyMs": {
+        "p50": 1,
+        "p90": 3,
+        "p97_5": 4,
+        "p99": 5
+      }
+    },
+    "search": {
+      "requests": 25911,
+      "non2xx": 0,
+      "latencyMs": {
+        "p50": 1,
+        "p90": 2,
+        "p97_5": 3,
+        "p99": 3
+      }
+    },
+    "checkout": {
+      "samples": 20,
+      "latencyMs": {
+        "p50": 11.935943999998926,
+        "p90": 15.116530000001148,
+        "p95": 15.374923999999737,
+        "p99": 44.00856500000009
+      }
+    }
+  }
+}

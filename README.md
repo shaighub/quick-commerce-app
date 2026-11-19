@@ -109,11 +109,18 @@ npm run typecheck
 npm run db:drift
 npm run test:coverage
 npm run build
+npm run test:e2e
+npm run test:lighthouse
+npm run test:load
 ```
 
 API integration tests apply migrations to `quick_commerce_test`. Override the URL with `TEST_DATABASE_URL`.
 
-Playwright is configured in `apps/web` and is not run in CI yet. Specs arrive with the flows they cover.
+`npm run test:e2e` migrates and seeds `quick_commerce`, then starts the API and Vite. Stop anything already using ports 4000 and 5173. Install browsers once with `npx playwright install --with-deps chromium` from `apps/web`.
+
+`npm run test:lighthouse` needs a production preview on port 4173 and Chrome. `npm run test:load` needs the API on port 4000 and inserts 10,000 products for the run, then deletes them. Raise `RATE_LIMIT_PUBLIC_MAX` and `RATE_LIMIT_AUTH_MAX` for that process. Lighthouse 13 runs on Node 22. The app itself stays on Node 20.
+
+Playwright, Lighthouse, and the load test also run in GitHub Actions.
 
 ## Environment
 
@@ -134,7 +141,8 @@ Copy `.env.example`. The API also reads `apps/api/.env`, which overrides the roo
 | `IMAGE_HOSTS`                    | Hostnames allowed in image URLs and in `img-src`.                                             |
 | `VITE_IMAGE_HOSTS`               | Optional. Same host list for the storefront image check. Defaults to `images.example.com`.    |
 | `DOCS_ENABLED`                   | `true` or `false`. Defaults on outside production.                                            |
-| `SENTRY_DSN`                     | Optional. Parsed now, wired to error tracking later.                                          |
+| `SENTRY_DSN`                     | Optional https Sentry DSN. Empty disables error reports.                                      |
+| `VITE_SENTRY_DSN`                | Optional. Same DSN shape for the browser. Empty disables browser reports.                     |
 | `VITE_API_BASE_URL`              | Browser base path. Keep `/v1`.                                                                |
 | `VITE_API_PROXY_TARGET`          | Where Vite proxies `/v1` during local dev.                                                    |
 
@@ -142,7 +150,7 @@ Copy `.env.example`. The API also reads `apps/api/.env`, which overrides the roo
 
 ## Deploy
 
-Not part of this milestone. The intended path, after a deployment checkpoint:
+Not part of this milestone. The draft runbook is [docs/05-deployment/README.md](docs/05-deployment/README.md). The intended path, after a deployment checkpoint:
 
 - API and PostgreSQL 16 on Render in Singapore. `prisma migrate deploy` runs before traffic switches.
 - Web on Vercel. The `/v1` rewrite keeps the refresh cookie same-origin.

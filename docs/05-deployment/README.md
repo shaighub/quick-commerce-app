@@ -44,6 +44,7 @@ Names only. The design says these secrets live in platform env settings only:
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
 - `SENTRY_DSN`
+- `VITE_SENTRY_DSN`
 - `JOBS_TOKEN`
 
 Other names present in `.env.example`, `apps/api/.env.example`, or `apps/web/.env.example`:
@@ -67,11 +68,52 @@ Other names present in `.env.example`, `apps/api/.env.example`, or `apps/web/.en
 
 `.env` is gitignored. `.env.example` holds placeholders.
 
-## Rollback
+## Draft runbook
 
-Placeholder. The deployment standard requires a tested rollback plan before a production deploy. No rollback procedure is recorded, and Checkpoint 5 is not approved.
+This is a draft for Checkpoint 5. Do not run it until that checkpoint is approved. Nothing in Milestone 5 was deployed.
 
-The design's deploy behavior that a later plan has to cover is [NFR-OPS-03](../03-implementation/m5-hardening.md): migrations run before traffic switches, the process drains in-flight requests for up to 10 seconds on SIGTERM, and the API and database share the Singapore region.
+### 1. Database
+
+Create a Render PostgreSQL 16 instance in the Singapore region. Free tier, 1 GB, seed data only. Copy the external connection string into `DATABASE_URL` and append `connection_limit=5&pool_timeout=10`.
+
+### 2. API
+
+Create a Render web service in Singapore from this repo's `apps/api/Dockerfile`. One free instance.
+
+| Setting            | Value                                                                |
+| ------------------ | -------------------------------------------------------------------- |
+| Region             | Singapore                                                            |
+| Health check path  | `/v1/health`                                                         |
+| Pre-deploy command | `npx prisma migrate deploy` from `apps/api`, before traffic switches |
+| Start command      | `node dist/server.js` (the image default)                            |
+
+Set `NODE_ENV=production`, `JWT_SECRET`, `JOBS_TOKEN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `DELIVERY_FEE_PAISE`, `SERVICEABLE_PINCODES`, `IMAGE_HOSTS`, and `DOCS_ENABLED=false`. Leave `SENTRY_DSN` empty until an error project exists. After the first successful deploy, run `npm run db:seed` once from a machine that can reach the database, with the same admin env vars.
+
+### 3. Web
+
+Import the repo into Vercel Hobby. Framework preset Vite, root `apps/web`, output `dist`. Set `VITE_API_BASE_URL=/v1`. Leave `VITE_SENTRY_DSN` empty.
+
+Replace the host in `apps/web/vercel.json` with the Render hostname, then redeploy so `/v1/:path*` rewrites to `https://<render-host>/v1/:path*`. The browser must not call Render directly.
+
+### 4. Sweeper
+
+In GitHub Actions secrets set `SWEEP_URL` to `https://<render-host>/v1/internal/jobs/sweep` and `JOBS_TOKEN` to the same value as the API. `.github/workflows/sweep.yml` POSTs every 10 minutes. Without those secrets the workflow exits as a dry run. The API also sweeps on startup.
+
+### 5. Smoke tests
+
+1. `GET /v1/health` returns `status: ok` and `db: up`.
+2. Open the Vercel URL, search for Amul Butter, and confirm the product page loads.
+3. Sign up, add the item, and check out to pincode `560001` with simulate success. The confirmation shows `QC-YYYYMMDD-NNNNNN`.
+4. Reload the page. The account name is still shown, which means `qc_rt` survived the `/v1` rewrite.
+5. Sign in as the seeded admin and open `/admin`. A customer account sees "Not allowed".
+
+### Rollback
+
+1. If `prisma migrate deploy` fails, Render does not switch traffic. Fix the migration and redeploy. Do not start the new image against an unmigrated database.
+2. If the new image is unhealthy, roll the Render service back to the previous deploy in the dashboard. The process handles SIGTERM and stops accepting work for up to `SHUTDOWN_TIMEOUT_MS` (10 seconds) before closing the pool.
+3. Roll the Vercel project back to the previous deployment so the rewrite still points at a healthy API.
+4. Free Render Postgres has no backups and no point-in-time recovery. A bad migration on that tier is recovered by recreating the database, running `prisma migrate deploy`, and seeding again. Do not use the free tier for data you cannot recreate.
+5. This rollback has not been executed. Checkpoint 5 has to approve it before a production deploy.
 
 ## Checkpoint 5
 

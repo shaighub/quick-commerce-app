@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 - 2026-11-19
+
+### Added
+
+- Playwright coverage for browse, auth, cart, checkout, orders, admin catalog, and admin orders, including axe and a keyboard pass. The suite runs in CI.
+- Lighthouse on the home and product pages, a JavaScript bundle budget, and a catalog load test.
+- Error reports when `SENTRY_DSN` or `VITE_SENTRY_DSN` is set. An empty value does nothing.
+- A draft deployment runbook for Render and Vercel in Singapore. Nothing was deployed.
+
 ## 0.4.0 - 2026-11-18
 
 ### Added

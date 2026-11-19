@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const assets = 'apps/web/dist/assets';
-const budgetBytes = 350 * 1024;
+const budgetBytes = 200 * 1024;
 let gzipTotal = 0;
 const files = [];
 

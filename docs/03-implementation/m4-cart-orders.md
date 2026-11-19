@@ -1,6 +1,8 @@
 # Milestone 4: Cart and orders
 
-**Status:** In review.
+**Status:** Done.
+
+Approved at Checkpoint 3 and merged on 2026-11-18.
 
 |              |                                                       |
 | ------------ | ----------------------------------------------------- |

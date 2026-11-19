@@ -20,3 +20,4 @@ Decisions from the approved design. The review references point at section 6 of 
 | [ADR-014](014-catalog-slugs-and-rupee-filters.md) | Catalog slugs stay put; shopper price filters use rupees         |
 | [ADR-015](015-unavailable-lines-excluded.md)      | Unavailable cart lines are excluded from checkout                |
 | [ADR-016](016-idempotency-key-lifetime.md)        | Idempotency keys last for the life of the account                |
+| [ADR-017](017-sentry-envelope-client.md)          | Small Sentry envelope client instead of the browser SDK          |

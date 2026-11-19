@@ -22,83 +22,79 @@ Release bars from the same matrix:
 | NFR-PERF-02 | LCP under 2.5 s, INP under 200 ms, CLS under 0.1, and Lighthouse performance and accessibility at least 90. |
 | NFR-A11Y-01 | No serious or critical axe violations; contrast at least 4.5:1 for text.                                    |
 
-What the repository runs today, from `.github/workflows/ci.yml`: lint, format, type-check, migrate, drift, OpenAPI check, Vitest with coverage, build, dependency audit, and gitleaks. Playwright is configured in `apps/web` and is not a CI job (`apps/web/e2e/README.md`). The workflow has no autocannon or Lighthouse step. Those remain planned checks in the design.
+What the repository runs today, from `.github/workflows/ci.yml`: lint, format, type-check, migrate, drift, OpenAPI check, Vitest with coverage, build, bundle size, security lint, dependency audit, gitleaks, Playwright, Lighthouse, and the catalog load test. See [apps/web/e2e/README.md](../../apps/web/e2e/README.md).
 
 Line coverage thresholds in the Vitest configs are 80% for `packages/shared`, `apps/api`, and `apps/web`. The web branch threshold is 70, which [Milestone 1](../03-implementation/m1-foundation.md) recorded as a deviation. Line coverage on the web package was reported at 100% in that pull request.
 
 ## Checkpoint 4 test report
 
-Placeholder. No pass count, fail count, or coverage figure has been recorded for this checkpoint.
+The measured results are in [test-report.md](test-report.md). Summary from 2026-11-19: 204 tests passed and 0 failed (115 unit, 35 integration, 31 component, 23 end to end). Line coverage is 98.74% shared, 93.77% API, and 88.26% web. axe serious/critical violations are 0. Lighthouse performance and accessibility are at least 98. Catalog p97.5 is 3–4 ms with 10,006 products.
 
-| Measure    | Result  |
-| ---------- | ------- |
-| Pass count | pending |
-| Fail count | pending |
-| Coverage   | pending |
+NFR-OPS-03 is partial because Singapore hosting was not deployed. Every other traceability ID is pass, with the notes in the report.
 
 ### Acceptance criteria
 
-Every ID in the traceability matrix. Status stays `pending` until Checkpoint 4 records a result.
+Every ID in the traceability matrix. The status column matches [test-report.md](test-report.md).
 
 | ID          | Status  |
 | ----------- | ------- |
-| FR-AUTH-01  | pending |
-| FR-AUTH-02  | pending |
-| FR-AUTH-03  | pending |
-| FR-AUTH-04  | pending |
-| FR-AUTH-05  | pending |
-| FR-AUTH-06  | pending |
-| FR-AUTH-07  | pending |
-| FR-AUTH-08  | pending |
-| FR-CAT-01   | pending |
-| FR-CAT-02   | pending |
-| FR-CAT-03   | pending |
-| FR-CAT-04   | pending |
-| FR-CAT-05   | pending |
-| FR-CAT-06   | pending |
-| FR-CAT-07   | pending |
-| FR-PROD-01  | pending |
-| FR-PROD-02  | pending |
-| FR-PROD-03  | pending |
-| FR-PROD-04  | pending |
-| FR-PROD-05  | pending |
-| FR-PROD-06  | pending |
-| FR-PROD-07  | pending |
-| FR-PROD-08  | pending |
-| FR-PROD-09  | pending |
-| FR-CART-01  | pending |
-| FR-CART-02  | pending |
-| FR-CART-03  | pending |
-| FR-CART-04  | pending |
-| FR-CART-05  | pending |
-| FR-CART-06  | pending |
-| FR-ORD-01   | pending |
-| FR-ORD-02   | pending |
-| FR-ORD-03   | pending |
-| FR-ORD-04   | pending |
-| FR-ORD-05   | pending |
-| FR-ORD-06   | pending |
-| FR-ORD-07   | pending |
-| FR-ORD-08   | pending |
-| FR-ORD-09   | pending |
-| FR-ORD-10   | pending |
-| FR-ORD-11   | pending |
-| FR-ORD-12   | pending |
-| FR-ADM-01   | pending |
-| NFR-SEC-01  | pending |
-| NFR-SEC-02  | pending |
-| NFR-SEC-03  | pending |
-| NFR-SEC-04  | pending |
-| NFR-SEC-05  | pending |
-| NFR-SEC-06  | pending |
-| NFR-SEC-07  | pending |
-| NFR-PERF-01 | pending |
-| NFR-PERF-02 | pending |
-| NFR-PERF-03 | pending |
-| NFR-A11Y-01 | pending |
-| NFR-A11Y-02 | pending |
-| NFR-OPS-01  | pending |
-| NFR-OPS-02  | pending |
-| NFR-OPS-03  | pending |
-| NFR-QUAL-01 | pending |
-| NFR-QUAL-02 | pending |
+| FR-AUTH-01  | pass    |
+| FR-AUTH-02  | pass    |
+| FR-AUTH-03  | pass    |
+| FR-AUTH-04  | pass    |
+| FR-AUTH-05  | pass    |
+| FR-AUTH-06  | pass    |
+| FR-AUTH-07  | pass    |
+| FR-AUTH-08  | pass    |
+| FR-CAT-01   | pass    |
+| FR-CAT-02   | pass    |
+| FR-CAT-03   | pass    |
+| FR-CAT-04   | pass    |
+| FR-CAT-05   | pass    |
+| FR-CAT-06   | pass    |
+| FR-CAT-07   | pass    |
+| FR-PROD-01  | pass    |
+| FR-PROD-02  | pass    |
+| FR-PROD-03  | pass    |
+| FR-PROD-04  | pass    |
+| FR-PROD-05  | pass    |
+| FR-PROD-06  | pass    |
+| FR-PROD-07  | pass    |
+| FR-PROD-08  | pass    |
+| FR-PROD-09  | pass    |
+| FR-CART-01  | pass    |
+| FR-CART-02  | pass    |
+| FR-CART-03  | pass    |
+| FR-CART-04  | pass    |
+| FR-CART-05  | pass    |
+| FR-CART-06  | pass    |
+| FR-ORD-01   | pass    |
+| FR-ORD-02   | pass    |
+| FR-ORD-03   | pass    |
+| FR-ORD-04   | pass    |
+| FR-ORD-05   | pass    |
+| FR-ORD-06   | pass    |
+| FR-ORD-07   | pass    |
+| FR-ORD-08   | pass    |
+| FR-ORD-09   | pass    |
+| FR-ORD-10   | pass    |
+| FR-ORD-11   | pass    |
+| FR-ORD-12   | pass    |
+| FR-ADM-01   | pass    |
+| NFR-SEC-01  | pass    |
+| NFR-SEC-02  | pass    |
+| NFR-SEC-03  | pass    |
+| NFR-SEC-04  | pass    |
+| NFR-SEC-05  | pass    |
+| NFR-SEC-06  | pass    |
+| NFR-SEC-07  | pass    |
+| NFR-PERF-01 | pass    |
+| NFR-PERF-02 | pass    |
+| NFR-PERF-03 | pass    |
+| NFR-A11Y-01 | pass    |
+| NFR-A11Y-02 | pass    |
+| NFR-OPS-01  | pass    |
+| NFR-OPS-02  | pass    |
+| NFR-OPS-03  | partial |
+| NFR-QUAL-01 | pass    |
+| NFR-QUAL-02 | pass    |
