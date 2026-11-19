@@ -149,7 +149,7 @@ export function ProductFormPage() {
           />
           {errors.sku ? <p className="text-sm text-red-800">{errors.sku}</p> : null}
           <label htmlFor="product-slug" className="text-sm font-medium">
-            Address
+            Slug
           </label>
           <input
             id="product-slug"

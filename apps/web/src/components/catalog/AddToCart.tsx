@@ -26,7 +26,7 @@ export function AddToCart({ productId, available }: { productId: string; availab
     return (
       <Link
         to={`/login?next=${encodeURIComponent(next)}`}
-        className="inline-block rounded bg-stone-900 px-4 py-2 text-white"
+        className="inline-block rounded bg-stone-900 px-4 py-2 text-white no-underline"
         onClick={() => {
           rememberPendingAdd(productId);
         }}

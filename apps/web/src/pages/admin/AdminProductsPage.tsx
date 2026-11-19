@@ -89,7 +89,10 @@ export function AdminProductsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold">Products</h1>
-        <Link to="/admin/products/new" className="rounded bg-stone-900 px-4 py-2 text-white">
+        <Link
+          to="/admin/products/new"
+          className="rounded bg-stone-900 px-4 py-2 text-white no-underline"
+        >
           New product
         </Link>
       </div>
@@ -180,6 +183,7 @@ export function AdminProductsPage() {
                 <Link
                   className="underline-offset-4 hover:underline"
                   to={`/admin/products/${product.id}/edit`}
+                  aria-label={`Edit ${product.name}`}
                 >
                   Edit
                 </Link>
@@ -187,6 +191,7 @@ export function AdminProductsPage() {
                   <button
                     type="button"
                     className="underline-offset-4 hover:underline"
+                    aria-label={`Delete ${product.name}`}
                     onClick={() => {
                       setDeleteId(product.id);
                       setDeleteName(product.name);

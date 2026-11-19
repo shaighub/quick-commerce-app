@@ -274,6 +274,7 @@ export function AdminCategoriesPage() {
               <button
                 type="button"
                 className="underline-offset-4 hover:underline"
+                aria-label={`Edit ${category.name}`}
                 onClick={() => {
                   setEditingId(editingId === category.id ? null : category.id);
                 }}
@@ -283,6 +284,7 @@ export function AdminCategoriesPage() {
               <button
                 type="button"
                 className="underline-offset-4 hover:underline"
+                aria-label={`Delete ${category.name}`}
                 onClick={() => {
                   setDeleteTarget({ kind: 'category', id: category.id, name: category.name });
                 }}
@@ -411,6 +413,7 @@ export function AdminCategoriesPage() {
                       <button
                         type="button"
                         className="text-sm underline-offset-4 hover:underline"
+                        aria-label={`Delete ${subcategory.name}`}
                         onClick={() => {
                           setDeleteTarget({
                             kind: 'subcategory',

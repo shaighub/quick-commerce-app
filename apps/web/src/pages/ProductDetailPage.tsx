@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { ApiError } from '../api/client.js';
@@ -18,6 +19,12 @@ export function ProductDetailPage() {
     staleTime: CATALOG_STALE_TIME_MS,
     retry: false,
   });
+  useEffect(() => {
+    document.title = product.data
+      ? `${product.data.name} · Quick Commerce`
+      : 'Product · Quick Commerce';
+  }, [product.data]);
+
   const related = useQuery({
     queryKey: ['products', 'related', product.data?.subcategory.id],
     enabled: product.data !== undefined,
