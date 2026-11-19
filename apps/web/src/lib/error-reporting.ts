@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto';
-
 export interface ReportedError {
   name: string;
   message: string;
@@ -60,7 +58,7 @@ export function createErrorReporter(options: {
         return;
       }
       const event = toReportedError(error, requestId);
-      const eventId = randomUUID().replaceAll('-', '');
+      const eventId = crypto.randomUUID().replaceAll('-', '');
       const body = [
         JSON.stringify({ event_id: eventId, dsn: target.dsn, sent_at: new Date().toISOString() }),
         JSON.stringify({ type: 'event' }),
