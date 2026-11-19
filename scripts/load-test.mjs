@@ -80,6 +80,17 @@ try {
     throw new Error(`API health returned ${health.status}`);
   }
 
+  const email = `load-${randomUUID().slice(0, 8)}@example.com`;
+  const signup = await fetch(`${apiBase}/v1/auth/signup`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'Load Test', email, password: 'Password1' }),
+  });
+  if (!signup.ok) {
+    throw new Error(`signup failed ${signup.status} ${await signup.text()}`);
+  }
+  const session = await signup.json();
+
   report.http.listing = await cannon({
     url: `${apiBase}/v1/products`,
     connections: 10,
@@ -100,16 +111,10 @@ try {
     },
   });
 
-  const email = `load-${randomUUID().slice(0, 8)}@example.com`;
-  const signup = await fetch(`${apiBase}/v1/auth/signup`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ name: 'Load Test', email, password: 'Password1' }),
-  });
-  if (!signup.ok) {
-    throw new Error(`signup failed ${signup.status} ${await signup.text()}`);
+  if (report.http.listing.non2xx > 0 || report.http.search.non2xx > 0) {
+    throw new Error('Catalog load received non-2xx responses. Raise the API rate limits.');
   }
-  const session = await signup.json();
+
   const product = await fetch(`${apiBase}/v1/products/amul-taaza-milk-1l`);
   const productBody = await product.json();
   const productId = productBody.product.id;

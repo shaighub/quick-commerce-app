@@ -2,9 +2,9 @@
 
 **Status:** In review.
 
-|              |                                         |
-| ------------ | --------------------------------------- |
-| Branch       | `feature/m5-hardening`                  |
+|              |                                                       |
+| ------------ | ----------------------------------------------------- |
+| Branch       | `feature/m5-hardening`                                |
 | Pull request | https://github.com/shaighub/quick-commerce-app/pull/6 |
 
 ## Planned scope
