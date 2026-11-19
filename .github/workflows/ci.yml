@@ -146,6 +146,9 @@ jobs:
       - name: Generate Prisma client
         run: npm run db:generate
 
+      - name: Build shared package
+        run: npm run build -w @qc/shared
+
       - name: Install Playwright
         working-directory: apps/web
         run: npx playwright install --with-deps chromium
