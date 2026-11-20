@@ -111,11 +111,21 @@ export function AdminOrdersPage() {
         <table className="w-full border-collapse text-left text-sm">
           <thead>
             <tr>
-              <th className="border-b border-stone-300 py-2">Order</th>
-              <th className="border-b border-stone-300 py-2">Customer</th>
-              <th className="border-b border-stone-300 py-2">Total</th>
-              <th className="border-b border-stone-300 py-2">Payment</th>
-              <th className="border-b border-stone-300 py-2">Status</th>
+              <th scope="col" className="border-b border-stone-300 py-2">
+                Order
+              </th>
+              <th scope="col" className="border-b border-stone-300 py-2">
+                Customer
+              </th>
+              <th scope="col" className="border-b border-stone-300 py-2">
+                Total
+              </th>
+              <th scope="col" className="border-b border-stone-300 py-2">
+                Payment
+              </th>
+              <th scope="col" className="border-b border-stone-300 py-2">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody>

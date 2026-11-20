@@ -73,7 +73,7 @@ export function CartPage() {
             ) : (
               <Link
                 to="/checkout"
-                className="rounded bg-stone-900 px-4 py-2 font-medium text-white"
+                className="rounded bg-stone-900 px-4 py-2 font-medium text-white no-underline"
               >
                 Checkout
               </Link>

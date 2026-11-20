@@ -6,6 +6,7 @@ import { createCatalogModule, type CatalogModule } from './catalog/create-catalo
 import { createCommerceModule, type CommerceModule } from './commerce/create-commerce.js';
 import type { AppConfig } from './config/env.js';
 import type { PrismaClient } from './generated/prisma/client.js';
+import { createErrorReporter } from './lib/error-reporting.js';
 import type { AppLogger } from './lib/logger.js';
 import { getRequestId, requestIdMiddleware } from './lib/request-id.js';
 import { createErrorHandler, notFoundHandler } from './middleware/error-handler.js';
@@ -21,6 +22,8 @@ export interface AppDeps {
   security?: Security;
   catalog?: CatalogModule;
   commerce?: CommerceModule;
+  /** Test double for the Sentry envelope POST. Production uses global fetch. */
+  fetchImpl?: typeof fetch;
 }
 
 export function createApp(deps: AppDeps): Express {
@@ -87,7 +90,16 @@ export function createApp(deps: AppDeps): Express {
     createV1Router({ config: deps.config, checkDb: deps.checkDb, security, catalog, commerce }),
   );
   app.use(notFoundHandler);
-  app.use(createErrorHandler(deps.logger));
+  const reporter = createErrorReporter({
+    dsn: deps.config.sentryDsn,
+    logger: {
+      warn(obj: object, msg: string) {
+        deps.logger.warn(obj, msg);
+      },
+    },
+    ...(deps.fetchImpl ? { fetchImpl: deps.fetchImpl } : {}),
+  });
+  app.use(createErrorHandler(deps.logger, reporter));
 
   return app;
 }

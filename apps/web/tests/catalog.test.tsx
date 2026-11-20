@@ -367,7 +367,7 @@ describe('admin catalog', () => {
     await waitFor(() => {
       expect(fetchImpl.mock.calls.some((call) => call[1]?.method === 'POST')).toBe(true);
     });
-    const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
+    const deleteButtons = screen.getAllByRole('button', { name: /Delete/ });
     const firstDelete = deleteButtons[0];
     if (!firstDelete) {
       throw new Error('delete button is missing');
@@ -376,7 +376,7 @@ describe('admin catalog', () => {
     const dialog = screen.getByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    const again = screen.getAllByRole('button', { name: 'Delete' })[0];
+    const again = screen.getAllByRole('button', { name: /Delete/ })[0];
     if (!again) {
       throw new Error('delete button is missing');
     }
@@ -403,7 +403,7 @@ describe('admin catalog', () => {
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Dairy & Bread' }),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.click(screen.getByRole('button', { name: /Edit/ }));
     const editName = document.getElementById(`edit-name-${categoryId}`);
     if (!(editName instanceof HTMLInputElement)) {
       throw new Error('edit name is missing');
@@ -430,7 +430,7 @@ describe('admin catalog', () => {
         fetchImpl.mock.calls.filter((call) => call[1]?.method === 'PATCH').length,
       ).toBeGreaterThan(1);
     });
-    const deleteButton = screen.getAllByRole('button', { name: 'Delete' })[0];
+    const deleteButton = screen.getAllByRole('button', { name: /Delete/ })[0];
     if (!deleteButton) {
       throw new Error('delete button is missing');
     }
@@ -486,7 +486,7 @@ describe('admin catalog', () => {
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Amul Butter' }),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    fireEvent.click(screen.getByRole('button', { name: /Delete/ }));
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
     await waitFor(() => {
       expect(fetchImpl.mock.calls.some((call) => call[1]?.method === 'DELETE')).toBe(true);

@@ -1,8 +1,11 @@
 # Milestone 5: Hardening
 
-**Status:** Not started.
+**Status:** In review.
 
-No branch, pull request, or verification result is recorded.
+|              |                                                       |
+| ------------ | ----------------------------------------------------- |
+| Branch       | `feature/m5-hardening`                                |
+| Pull request | https://github.com/shaighub/quick-commerce-app/pull/6 |
 
 ## Planned scope
 
@@ -23,6 +26,15 @@ From the approved design. These are the non-functional requirements that the tra
 - Playwright flows and hosting were explicitly left for later. `.github/workflows/ci.yml` has no Playwright, Lighthouse, or autocannon job. `apps/web/e2e/README.md` says Playwright specs are not part of the Milestone 1 CI gate.
 
 The picomatch advisory `GHSA-fc5q-39xc-vjpf` is the allowlisted exception recorded in that pull request and in `CONTRIBUTING.md`. NFR-SEC-05 says no known high or critical vulnerabilities at release. That release check has not been run as Checkpoint 4 or Checkpoint 5.
+
+## What landed
+
+- Playwright specs for browse and search, guest add-to-cart, sign-up, login, logout, logout everywhere, lockout, cart quantity and remove, checkout, payment failure, price confirmation, unserved pincodes, order history, admin catalog CRUD, admin order status, RBAC, axe, and keyboard checkout. CI runs them and uploads traces on failure.
+- axe reports zero serious or critical violations on the storefront and admin screens.
+- Lighthouse on Home and product detail, a 200 KB gzip JavaScript budget (measured 133 KB), and `scripts/load-test.mjs` against 10,006 products. No new index. Details are in the [test report](../04-testing/test-report.md).
+- Security review, `eslint-plugin-security` on application source, and a CodeQL workflow. Request logs redact password, email, phone, and address.
+- `SENTRY_DSN` and `VITE_SENTRY_DSN` send a small error envelope with the request id ([ADR-017](../adr/017-sentry-envelope-client.md)). An empty value does nothing.
+- Deployment runbook only. Nothing was deployed.
 
 ## Exit criteria
 

@@ -27,6 +27,9 @@ export function HomePage() {
   useEffect(() => {
     setDraftQuery(filters.q);
   }, [filters.q]);
+  useEffect(() => {
+    document.title = filters.q === '' ? 'Shop · Quick Commerce' : 'Search · Quick Commerce';
+  }, [filters.q]);
   const categories = useQuery({
     queryKey: ['categories', 'public'],
     queryFn: () => api.listCategories(),

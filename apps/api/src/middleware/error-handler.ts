@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 import { AppError, errorBody, ErrorCodes } from '../lib/errors.js';
 import { getRequestId } from '../lib/request-id.js';
+import type { ErrorReporter } from '../lib/error-reporting.js';
 import type { AppLogger } from '../lib/logger.js';
 
 function isJsonParseError(error: unknown): boolean {
@@ -23,7 +24,7 @@ function isPayloadTooLarge(error: unknown): boolean {
   );
 }
 
-export function createErrorHandler(logger: AppLogger) {
+export function createErrorHandler(logger: AppLogger, reporter?: ErrorReporter) {
   return function errorHandler(
     error: unknown,
     req: Request,
@@ -87,6 +88,7 @@ export function createErrorHandler(logger: AppLogger) {
     }
 
     logger.error({ err: error, requestId }, 'unhandled error');
+    reporter?.capture(error, requestId);
     res.status(500).json(errorBody(ErrorCodes.INTERNAL_ERROR, 'Something went wrong', requestId));
   };
 }

@@ -1,0 +1,43 @@
+{
+  "ranAt": "2026-11-19T17:10:07.718Z",
+  "node": "v22.23.4",
+  "targets": {
+    "performance": 90,
+    "accessibility": 90,
+    "bestPractices": 90,
+    "seo": 90,
+    "lcpMs": 2500,
+    "inpMs": 200,
+    "cls": 0.1
+  },
+  "results": [
+    {
+      "name": "home",
+      "url": "http://127.0.0.1:4173/",
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 96,
+        "seo": 92
+      },
+      "lcp": 758.0492999999999,
+      "cls": 0.05647310802639156,
+      "inp": null,
+      "tbt": 36.5
+    },
+    {
+      "name": "product",
+      "url": "http://127.0.0.1:4173/p/amul-butter-500g",
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 96,
+        "seo": 92
+      },
+      "lcp": 2441.3621,
+      "cls": 0,
+      "inp": null,
+      "tbt": 31
+    }
+  ]
+}
